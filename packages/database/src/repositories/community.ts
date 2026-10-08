@@ -42,10 +42,10 @@ export class CommunityRepository {
   }
 
   async leave(giveawayId: number, userId: string): Promise<boolean> {
-    const result = await this.db.query('DELETE FROM giveaway_entries WHERE giveaway_id = $1 AND user_id = $2', [
-      giveawayId,
-      userId,
-    ]);
+    const result = await this.db.query(
+      'DELETE FROM giveaway_entries WHERE giveaway_id = $1 AND user_id = $2',
+      [giveawayId, userId],
+    );
     return (result.rowCount ?? 0) > 0;
   }
 
@@ -146,8 +146,19 @@ export class CommunityRepository {
     return (result.rowCount ?? 0) > 0;
   }
 
-  async listSuggestions(guildId: string, limit = 25): Promise<
-    Array<{ id: number; title: string; status: string; upvotes: number; downvotes: number; authorId: string; messageId: string }>
+  async listSuggestions(
+    guildId: string,
+    limit = 25,
+  ): Promise<
+    Array<{
+      id: number;
+      title: string;
+      status: string;
+      upvotes: number;
+      downvotes: number;
+      authorId: string;
+      messageId: string;
+    }>
   > {
     const result = await this.db.query<Record<string, unknown>>(
       'SELECT * FROM suggestions WHERE guild_id = $1 ORDER BY created_at DESC LIMIT $2',
@@ -204,17 +215,20 @@ export class CommunityRepository {
       closed: boolean;
       multi_vote: boolean;
       options: string[];
-    }>('SELECT id, closed, multi_vote, options FROM polls WHERE guild_id = $1 AND message_id = $2', [
-      params.guildId,
-      params.messageId,
-    ]);
+    }>(
+      'SELECT id, closed, multi_vote, options FROM polls WHERE guild_id = $1 AND message_id = $2',
+      [params.guildId, params.messageId],
+    );
     if (!poll) return { recorded: false, reason: 'invalid_option' };
     if (poll.closed) return { recorded: false, reason: 'closed' };
     if (params.optionIndex < 0 || params.optionIndex >= poll.options.length) {
       return { recorded: false, reason: 'invalid_option' };
     }
     if (!poll.multi_vote) {
-      await this.db.query('DELETE FROM poll_votes WHERE poll_id = $1 AND user_id = $2', [poll.id, params.userId]);
+      await this.db.query('DELETE FROM poll_votes WHERE poll_id = $1 AND user_id = $2', [
+        poll.id,
+        params.userId,
+      ]);
     }
     await this.db.query(
       `INSERT INTO poll_votes (poll_id, user_id, option_index) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING`,
@@ -223,7 +237,10 @@ export class CommunityRepository {
     return { recorded: true };
   }
 
-  async pollResults(guildId: string, messageId: string): Promise<Array<{ option: string; votes: number }> | null> {
+  async pollResults(
+    guildId: string,
+    messageId: string,
+  ): Promise<Array<{ option: string; votes: number }> | null> {
     const poll = await this.db.queryOne<{ id: number; options: string[] }>(
       'SELECT id, options FROM polls WHERE guild_id = $1 AND message_id = $2',
       [guildId, messageId],
@@ -238,10 +255,10 @@ export class CommunityRepository {
   }
 
   async closePoll(guildId: string, messageId: string): Promise<boolean> {
-    const result = await this.db.query('UPDATE polls SET closed = TRUE WHERE guild_id = $1 AND message_id = $2', [
-      guildId,
-      messageId,
-    ]);
+    const result = await this.db.query(
+      'UPDATE polls SET closed = TRUE WHERE guild_id = $1 AND message_id = $2',
+      [guildId, messageId],
+    );
     return (result.rowCount ?? 0) > 0;
   }
 
@@ -259,7 +276,14 @@ export class CommunityRepository {
       `INSERT INTO reaction_roles (guild_id, channel_id, message_id, emoji, role_id, mode)
        VALUES ($1, $2, $3, $4, $5, $6)
        ON CONFLICT (guild_id, message_id, emoji) DO UPDATE SET role_id = EXCLUDED.role_id, mode = EXCLUDED.mode`,
-      [params.guildId, params.channelId, params.messageId, params.emoji, params.roleId, params.mode ?? 'toggle'],
+      [
+        params.guildId,
+        params.channelId,
+        params.messageId,
+        params.emoji,
+        params.roleId,
+        params.mode ?? 'toggle',
+      ],
     );
   }
 
@@ -271,9 +295,11 @@ export class CommunityRepository {
     return (result.rowCount ?? 0) > 0;
   }
 
-  async reactionRoleFor(guildId: string, messageId: string, emoji: string): Promise<
-    { roleId: string; mode: string } | null
-  > {
+  async reactionRoleFor(
+    guildId: string,
+    messageId: string,
+    emoji: string,
+  ): Promise<{ roleId: string; mode: string } | null> {
     const row = await this.db.queryOne<{ role_id: string; mode: string }>(
       'SELECT role_id, mode FROM reaction_roles WHERE guild_id = $1 AND message_id = $2 AND emoji = $3',
       [guildId, messageId, emoji],
@@ -281,7 +307,9 @@ export class CommunityRepository {
     return row ? { roleId: row.role_id, mode: row.mode } : null;
   }
 
-  async listReactionRoles(guildId: string): Promise<
+  async listReactionRoles(
+    guildId: string,
+  ): Promise<
     Array<{ channelId: string; messageId: string; emoji: string; roleId: string; mode: string }>
   > {
     const result = await this.db.query<Record<string, unknown>>(
@@ -334,7 +362,10 @@ export class CommunityRepository {
     );
   }
 
-  async birthdaysOn(month: number, day: number): Promise<Array<{ guildId: string; userId: string }>> {
+  async birthdaysOn(
+    month: number,
+    day: number,
+  ): Promise<Array<{ guildId: string; userId: string }>> {
     const result = await this.db.query<{ guild_id: string; user_id: string }>(
       'SELECT guild_id, user_id FROM birthdays WHERE month = $1 AND day = $2',
       [month, day],
@@ -357,7 +388,10 @@ export class CommunityRepository {
     return Number(result.rows[0]?.id ?? 0);
   }
 
-  async dueReminders(now = new Date(), limit = 50): Promise<
+  async dueReminders(
+    now = new Date(),
+    limit = 50,
+  ): Promise<
     Array<{ id: number; guildId: string; channelId: string; userId: string; content: string }>
   > {
     const result = await this.db.query<Record<string, unknown>>(

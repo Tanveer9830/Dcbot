@@ -14,7 +14,11 @@ export default defineCommand({
       .setTitle('Pong')
       .setColor(COLORS.success)
       .addFields(
-        { name: 'Gateway', value: `${Math.round(ctx.interaction.client.ws.ping)} ms`, inline: true },
+        {
+          name: 'Gateway',
+          value: `${Math.round(ctx.interaction.client.ws.ping)} ms`,
+          inline: true,
+        },
         { name: 'Shard', value: String(ctx.interaction.guild?.shardId ?? 0), inline: true },
         {
           name: 'Database',

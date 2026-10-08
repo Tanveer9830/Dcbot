@@ -32,7 +32,12 @@ describe('leveling repository', () => {
     const user = '920000000000000004';
     const leveling = new LevelingRepository(db, 60_000);
 
-    const result = await leveling.awardXp({ guildId: guild, userId: user, amount: 10, multiplier: 1.55 });
+    const result = await leveling.awardXp({
+      guildId: guild,
+      userId: user,
+      amount: 10,
+      multiplier: 1.55,
+    });
     expect(result.awarded).toBe(15);
   });
 

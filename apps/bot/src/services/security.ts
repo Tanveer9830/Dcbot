@@ -1,4 +1,10 @@
-import { ChannelType, EmbedBuilder, type Guild, type GuildMember, type TextChannel } from 'discord.js';
+import {
+  ChannelType,
+  EmbedBuilder,
+  type Guild,
+  type GuildMember,
+  type TextChannel,
+} from 'discord.js';
 import type { SecurityRepository } from '@dcbot/database';
 import type { SecurityEventType, SecuritySeverity } from '@dcbot/shared';
 import type { LockdownManager } from '../security/lockdown.js';
@@ -65,7 +71,10 @@ export class SecurityService {
     });
     if (settings.lockdownOnTrigger && !this.lockdown.isLocked(guild.id)) {
       const result = await this.lockdown.lock(guild, { reason: 'anti-raid' });
-      this.logger.warn('security: lockdown engaged', { guildId: guild.id, locked: result.locked.length });
+      this.logger.warn('security: lockdown engaged', {
+        guildId: guild.id,
+        locked: result.locked.length,
+      });
     }
     return { action: settings.lockdownOnTrigger ? 'lockdown' : 'alert' };
   }
@@ -82,14 +91,17 @@ export class SecurityService {
 
     this.messages.push(`${params.guild.id}:${params.member.id}`);
     const count = this.messages.count(`${params.guild.id}:${params.member.id}`);
-    const detection = detectSpam(Array.from({ length: count }, () => Date.now()), {
-      joinThreshold: settings.joinThreshold,
-      joinWindowMs: settings.joinWindowMs,
-      spamThreshold: settings.spamThreshold,
-      spamWindowMs: settings.spamWindowMs,
-      mentionThreshold: settings.mentionThreshold,
-      minAccountAgeDays: settings.minAccountAgeDays,
-    });
+    const detection = detectSpam(
+      Array.from({ length: count }, () => Date.now()),
+      {
+        joinThreshold: settings.joinThreshold,
+        joinWindowMs: settings.joinWindowMs,
+        spamThreshold: settings.spamThreshold,
+        spamWindowMs: settings.spamWindowMs,
+        mentionThreshold: settings.mentionThreshold,
+        minAccountAgeDays: settings.minAccountAgeDays,
+      },
+    );
     if (!detection.triggered) return { action: null, severity: null };
 
     // De-escalate: warn first, then timeout, so a single burst is not a ban.
@@ -140,19 +152,35 @@ export class SecurityService {
   async alert(
     guild: Guild,
     channelId: string | null,
-    payload: { title: string; severity: SecuritySeverity; description: string; fields?: Array<{ name: string; value: string }> },
+    payload: {
+      title: string;
+      severity: SecuritySeverity;
+      description: string;
+      fields?: Array<{ name: string; value: string }>;
+    },
   ): Promise<boolean> {
     const color =
-      payload.severity === 'critical' ? 0x990000 : payload.severity === 'high' ? 0xed4245 : payload.severity === 'medium' ? 0xfaa61a : 0x57f287;
+      payload.severity === 'critical'
+        ? 0x990000
+        : payload.severity === 'high'
+          ? 0xed4245
+          : payload.severity === 'medium'
+            ? 0xfaa61a
+            : 0x57f287;
     const embed = new EmbedBuilder()
       .setTitle(`🛡️ ${payload.title}`)
       .setDescription(payload.description)
       .setColor(color)
-      .addFields({ name: 'Severity', value: payload.severity.toUpperCase(), inline: true }, ...(payload.fields ?? []))
+      .addFields(
+        { name: 'Severity', value: payload.severity.toUpperCase(), inline: true },
+        ...(payload.fields ?? []),
+      )
       .setTimestamp();
 
     if (!channelId) {
-      this.logger.warn(`security: ${payload.title} (no alert channel configured)`, { guildId: guild.id });
+      this.logger.warn(`security: ${payload.title} (no alert channel configured)`, {
+        guildId: guild.id,
+      });
       return false;
     }
     const channel = guild.channels.cache.get(channelId);

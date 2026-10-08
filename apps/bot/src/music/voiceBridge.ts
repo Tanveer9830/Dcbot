@@ -107,6 +107,10 @@ export class DiscordVoiceBridge implements VoiceBridge {
     if (!pending || !pending.sessionId || !pending.token || !pending.endpoint) return;
     clearTimeout(pending.timer);
     this.pending.delete(guildId);
-    pending.resolve({ sessionId: pending.sessionId, token: pending.token, endpoint: pending.endpoint });
+    pending.resolve({
+      sessionId: pending.sessionId,
+      token: pending.token,
+      endpoint: pending.endpoint,
+    });
   }
 }

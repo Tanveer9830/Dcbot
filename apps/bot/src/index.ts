@@ -50,7 +50,9 @@ async function main(): Promise<void> {
   try {
     env = loadEnv({ require: ['bot', 'database'], throwOnError: false });
   } catch (error) {
-    logger.error('environment validation failed', { error: error instanceof Error ? error.message : String(error) });
+    logger.error('environment validation failed', {
+      error: error instanceof Error ? error.message : String(error),
+    });
     process.exit(1);
   }
 
@@ -72,10 +74,15 @@ async function main(): Promise<void> {
   try {
     owners = new OwnerPolicy({ raw: env.BOT_OWNER_IDS, strict: true });
   } catch (error) {
-    logger.error('invalid BOT_OWNER_IDS', { error: error instanceof Error ? error.message : String(error) });
+    logger.error('invalid BOT_OWNER_IDS', {
+      error: error instanceof Error ? error.message : String(error),
+    });
     process.exit(1);
   }
-  logger.info('owner policy loaded', { owners: owners.count, masked: owners.listMasked().join(', ') });
+  logger.info('owner policy loaded', {
+    owners: owners.count,
+    masked: owners.listMasked().join(', '),
+  });
 
   // Database: required unless explicitly opted out (and never in production).
   let db: Database | null = null;
@@ -198,7 +205,9 @@ async function main(): Promise<void> {
     try {
       await services.shutdown(context);
     } catch (error) {
-      logger.warn('service shutdown error', { error: error instanceof Error ? error.message : String(error) });
+      logger.warn('service shutdown error', {
+        error: error instanceof Error ? error.message : String(error),
+      });
     }
     client.destroy();
     await closeDatabase();
@@ -209,7 +218,9 @@ async function main(): Promise<void> {
   process.on('SIGINT', () => void shutdown('SIGINT'));
   process.on('SIGTERM', () => void shutdown('SIGTERM'));
   process.on('unhandledRejection', (reason) => {
-    logger.error('unhandled rejection', { reason: reason instanceof Error ? reason.message : String(reason) });
+    logger.error('unhandled rejection', {
+      reason: reason instanceof Error ? reason.message : String(reason),
+    });
   });
   process.on('uncaughtException', (error) => {
     logger.error('uncaught exception', { error: error.message, stack: error.stack });
@@ -244,6 +255,9 @@ async function main(): Promise<void> {
 }
 
 main().catch((error) => {
-  console.error('[bootstrap] fatal:', error instanceof Error ? error.stack ?? error.message : error);
+  console.error(
+    '[bootstrap] fatal:',
+    error instanceof Error ? (error.stack ?? error.message) : error,
+  );
   process.exitCode = 1;
 });

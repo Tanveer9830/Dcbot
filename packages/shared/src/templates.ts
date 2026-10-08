@@ -81,10 +81,9 @@ export function renderTemplate(
   });
 
   if (strict && seenUnknown.size > 0) {
-    throw new ValidationError(
-      `Unknown template variable(s): ${[...seenUnknown].join(', ')}.`,
-      [...seenUnknown],
-    );
+    throw new ValidationError(`Unknown template variable(s): ${[...seenUnknown].join(', ')}.`, [
+      ...seenUnknown,
+    ]);
   }
   if (rendered.length > maxLength) {
     throw new ValidationError(`Rendered output exceeds ${maxLength} characters.`);

@@ -1,4 +1,10 @@
-import { EmbedBuilder, type Guild, type GuildMember, type TextChannel, ChannelType } from 'discord.js';
+import {
+  EmbedBuilder,
+  type Guild,
+  type GuildMember,
+  type TextChannel,
+  ChannelType,
+} from 'discord.js';
 import type { Repositories } from '../database/repositories.js';
 import { renderTemplate } from '@dcbot/shared';
 import type { Logger } from '../utils/logger.js';
@@ -42,7 +48,11 @@ export class WelcomeService {
 
   async update(guildId: string, patch: Partial<WelcomeConfig>): Promise<WelcomeConfig> {
     const config = { ...(await this.config(guildId)), ...patch };
-    await this.repos.guilds.updateSettingsGroup(guildId, 'welcome', config as unknown as Record<string, unknown>);
+    await this.repos.guilds.updateSettingsGroup(
+      guildId,
+      'welcome',
+      config as unknown as Record<string, unknown>,
+    );
     return config;
   }
 
@@ -85,7 +95,9 @@ export class WelcomeService {
 
     if (config.dmOnJoin) {
       const text = this.render(config.message, member);
-      await member.send({ embeds: [new EmbedBuilder().setDescription(text).setColor(0x57f287)] }).catch(() => undefined);
+      await member
+        .send({ embeds: [new EmbedBuilder().setDescription(text).setColor(0x57f287)] })
+        .catch(() => undefined);
     }
 
     if (!config.enabled || !config.channelId) return { greeted: rolesAdded.length > 0, rolesAdded };
@@ -119,7 +131,12 @@ export class WelcomeService {
     if (!channel || channel.type !== ChannelType.GuildText) return false;
     try {
       await (channel as TextChannel).send({
-        embeds: [new EmbedBuilder().setDescription(this.render(config.leaveMessage, member)).setColor(0xed4245).setTimestamp()],
+        embeds: [
+          new EmbedBuilder()
+            .setDescription(this.render(config.leaveMessage, member))
+            .setColor(0xed4245)
+            .setTimestamp(),
+        ],
       });
       return true;
     } catch {

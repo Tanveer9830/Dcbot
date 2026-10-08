@@ -18,7 +18,13 @@ export function Sparkline({ points, label }: SparklineProps): JSX.Element {
   return (
     <div>
       {label ? <div className="stat-label">{label}</div> : null}
-      <svg className="sparkline" viewBox="0 0 100 40" preserveAspectRatio="none" role="img" aria-label={label ?? 'chart'}>
+      <svg
+        className="sparkline"
+        viewBox="0 0 100 40"
+        preserveAspectRatio="none"
+        role="img"
+        aria-label={label ?? 'chart'}
+      >
         {points.map((point, index) => {
           const height = (point.count / max) * 34;
           return (

@@ -81,7 +81,16 @@ export class AuditRepository {
   }
 }
 
-const SECRET_KEY_HINTS = ['token', 'secret', 'password', 'authorization', 'cookie', 'apikey', 'api_key', 'private'];
+const SECRET_KEY_HINTS = [
+  'token',
+  'secret',
+  'password',
+  'authorization',
+  'cookie',
+  'apikey',
+  'api_key',
+  'private',
+];
 
 /** Strips values whose key looks like a credential before they hit the DB. */
 export function sanitize(detail: Record<string, unknown>): Record<string, unknown> {

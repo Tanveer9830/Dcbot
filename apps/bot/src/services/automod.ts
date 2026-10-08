@@ -91,7 +91,11 @@ export class AutoModService {
       .filter((word) => word.length > 0)
       .slice(0, 500);
     config.warnThreshold = Math.max(1, Math.min(20, config.warnThreshold));
-    await this.repos.guilds.updateSettingsGroup(guildId, 'automod', config as unknown as Record<string, unknown>);
+    await this.repos.guilds.updateSettingsGroup(
+      guildId,
+      'automod',
+      config as unknown as Record<string, unknown>,
+    );
     return config;
   }
 
@@ -118,8 +122,10 @@ export class AutoModService {
     if (!config.enabled) return { ...noMatch, reason: 'automod disabled' };
     if (params.authorIsBot) return { ...noMatch, reason: 'author is a bot' };
     if (params.authorIsStaff) return { ...noMatch, reason: 'author is staff' };
-    if (config.exemptUserIds.includes(params.userId)) return { ...noMatch, reason: 'author exempt' };
-    if (config.exemptChannelIds.includes(params.channelId)) return { ...noMatch, reason: 'channel exempt' };
+    if (config.exemptUserIds.includes(params.userId))
+      return { ...noMatch, reason: 'author exempt' };
+    if (config.exemptChannelIds.includes(params.channelId))
+      return { ...noMatch, reason: 'channel exempt' };
     if (params.roleIds.some((role) => config.exemptRoleIds.includes(role))) {
       return { ...noMatch, reason: 'author holds an exempt role' };
     }
@@ -193,7 +199,13 @@ export class AutoModService {
       const detection = detectRepeat([...params.history, content]);
       detections.push(detection);
       if (detection.triggered) {
-        return { blocked: true, rule: 'repeat', reason: detection.reason, detections, matchedWords };
+        return {
+          blocked: true,
+          rule: 'repeat',
+          reason: detection.reason,
+          detections,
+          matchedWords,
+        };
       }
     }
 

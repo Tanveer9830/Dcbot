@@ -46,16 +46,20 @@ async function main(): Promise<void> {
       guildId: env.DISCORD_DEV_GUILD_ID,
       count: payload.length,
     });
-    await rest.put(Routes.applicationGuildCommands(env.DISCORD_CLIENT_ID!, env.DISCORD_DEV_GUILD_ID), {
-      body: payload,
-    });
+    await rest.put(
+      Routes.applicationGuildCommands(env.DISCORD_CLIENT_ID!, env.DISCORD_DEV_GUILD_ID),
+      {
+        body: payload,
+      },
+    );
   } else {
     logger.info('registering global commands', { count: payload.length });
     await rest.put(Routes.applicationCommands(env.DISCORD_CLIENT_ID!), { body: payload });
   }
 
   logger.info('deployment complete', { commands: payload.length, skippedFiles: skipped.length });
-  if (skipped.length > 0) logger.warn('files without a command export', { files: skipped.join(', ') });
+  if (skipped.length > 0)
+    logger.warn('files without a command export', { files: skipped.join(', ') });
 }
 
 main().catch((error) => {

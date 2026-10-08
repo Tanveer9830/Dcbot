@@ -3,13 +3,7 @@ import type { Repositories } from '../database/repositories.js';
 import type { Logger } from '../utils/logger.js';
 
 export type LogChannelKey =
-  | 'moderation'
-  | 'security'
-  | 'messages'
-  | 'members'
-  | 'tickets'
-  | 'economy'
-  | 'errors';
+  'moderation' | 'security' | 'messages' | 'members' | 'tickets' | 'economy' | 'errors';
 
 export interface LoggingConfig {
   enabled: boolean;
@@ -88,8 +82,15 @@ export class LoggingService {
     if (!channelId) return false;
 
     const channel = guild.channels.cache.get(channelId);
-    if (!channel || (channel.type !== ChannelType.GuildText && channel.type !== ChannelType.GuildAnnouncement)) {
-      this.logger.debug('logging: configured channel unavailable', { guildId: guild.id, key, channelId });
+    if (
+      !channel ||
+      (channel.type !== ChannelType.GuildText && channel.type !== ChannelType.GuildAnnouncement)
+    ) {
+      this.logger.debug('logging: configured channel unavailable', {
+        guildId: guild.id,
+        key,
+        channelId,
+      });
       return false;
     }
     try {

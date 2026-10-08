@@ -21,7 +21,11 @@ export default defineCommand({
         await ctx.reply({ content: `No command named \`${target}\`.`, ephemeral: true });
         return;
       }
-      const json = command.data.toJSON() as unknown as { name: string; description: string; options?: Array<Record<string, unknown>> };
+      const json = command.data.toJSON() as unknown as {
+        name: string;
+        description: string;
+        options?: Array<Record<string, unknown>>;
+      };
       const subs = (json.options ?? []).filter((option) => option.type === 1 || option.type === 2);
       const embed = new EmbedBuilder()
         .setTitle(`/${json.name}`)
@@ -35,7 +39,10 @@ export default defineCommand({
       if (subs.length > 0) {
         embed.addFields({
           name: `Subcommands (${subs.length})`,
-          value: subs.map((sub) => `\`${String(sub.name)}\` - ${String(sub.description ?? '')}`).join('\n').slice(0, 1024),
+          value: subs
+            .map((sub) => `\`${String(sub.name)}\` - ${String(sub.description ?? '')}`)
+            .join('\n')
+            .slice(0, 1024),
         });
       }
       await ctx.reply({ embeds: [embed] });
@@ -44,7 +51,9 @@ export default defineCommand({
 
     const commands = registry?.list() ?? [];
     const ownerIds = ctx.context.owners;
-    const visible = commands.filter((command) => !command.ownerOnly || ownerIds.isOwner(ctx.interaction.user.id));
+    const visible = commands.filter(
+      (command) => !command.ownerOnly || ownerIds.isOwner(ctx.interaction.user.id),
+    );
     const lines = visible.map((command) => {
       const json = command.data.toJSON() as unknown as { name: string; description: string };
       return `**/${json.name}** - ${json.description}`;

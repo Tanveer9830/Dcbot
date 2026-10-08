@@ -21,7 +21,10 @@ export class AuthorizationError extends DcbotError {
 /** Thrown when owner-only functionality is used by a non-owner. */
 export class OwnerOnlyError extends AuthorizationError {
   constructor(action = 'manage bot-owner resources') {
-    super(`This action is restricted to the configured bot owners. You cannot ${action}.`, 'OWNER_ONLY');
+    super(
+      `This action is restricted to the configured bot owners. You cannot ${action}.`,
+      'OWNER_ONLY',
+    );
     this.name = 'OwnerOnlyError';
   }
 }
@@ -53,7 +56,11 @@ export class NotFoundError extends DcbotError {
 /** Thrown when an external dependency (Lavalink, Discord, ...) is unavailable. */
 export class ServiceUnavailableError extends DcbotError {
   constructor(service: string, detail = '') {
-    super(`${service} is currently unavailable.${detail ? ` ${detail}` : ''}`, 'SERVICE_UNAVAILABLE', true);
+    super(
+      `${service} is currently unavailable.${detail ? ` ${detail}` : ''}`,
+      'SERVICE_UNAVAILABLE',
+      true,
+    );
   }
 }
 

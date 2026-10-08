@@ -29,7 +29,8 @@ export interface ResolvedSpotify {
   source: 'spotify_api' | 'url_only';
 }
 
-const SPOTIFY_URL = /^https?:\/\/open\.spotify\.com\/(?:intl-[a-z-]+\/)?(track|album|playlist|artist)\/([A-Za-z0-9]+)/i;
+const SPOTIFY_URL =
+  /^https?:\/\/open\.spotify\.com\/(?:intl-[a-z-]+\/)?(track|album|playlist|artist)\/([A-Za-z0-9]+)/i;
 
 /** Parses an open.spotify.com URL. Returns null when it is not a Spotify link. */
 export function parseSpotifyUrl(url: string): SpotifyLink | null {
@@ -102,7 +103,9 @@ export class SpotifyMetadataClient {
     }
 
     if (link.kind === 'track') {
-      const data = await this.get<{ name: string; artists: Array<{ name: string }> }>(`/tracks/${link.id}`);
+      const data = await this.get<{ name: string; artists: Array<{ name: string }> }>(
+        `/tracks/${link.id}`,
+      );
       const artist = data.artists.map((entry) => entry.name).join(', ');
       return {
         kind: 'track',
@@ -134,7 +137,9 @@ export class SpotifyMetadataClient {
     if (link.kind === 'playlist') {
       const data = await this.get<{
         name: string;
-        tracks: { items: Array<{ track: { name: string; artists: Array<{ name: string }> } | null }> };
+        tracks: {
+          items: Array<{ track: { name: string; artists: Array<{ name: string }> } | null }>;
+        };
       }>(`/playlists/${link.id}?limit=100`);
       const titles = data.tracks.items
         .map((item) => item.track)

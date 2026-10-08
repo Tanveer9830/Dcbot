@@ -44,7 +44,11 @@ export function levelProgress(xp: number): LevelProgress {
 }
 
 /** Random XP for a message, clamped to [min, max]. */
-export function rollMessageXp(min: number, max: number, random: () => number = Math.random): number {
+export function rollMessageXp(
+  min: number,
+  max: number,
+  random: () => number = Math.random,
+): number {
   if (max < min) throw new RangeError('max must be >= min');
   return min + Math.floor(random() * (max - min + 1));
 }

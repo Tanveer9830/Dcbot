@@ -33,7 +33,12 @@ export function evaluateNoPin(params: {
     return { record: false, mode: 'log', exempt: true, reason: 'no-pin monitoring is disabled' };
   }
   if (!params.actorId) {
-    return { record: true, mode: params.mode, exempt: false, reason: 'actor could not be determined' };
+    return {
+      record: true,
+      mode: params.mode,
+      exempt: false,
+      reason: 'actor could not be determined',
+    };
   }
   if (params.actorIsStaff) {
     return { record: true, mode: 'log', exempt: true, reason: 'actor is server staff' };
@@ -44,7 +49,12 @@ export function evaluateNoPin(params: {
   if (params.actorRoleIds.some((role) => params.exemptRoleIds.includes(role))) {
     return { record: true, mode: 'log', exempt: true, reason: 'actor holds an exempt role' };
   }
-  return { record: true, mode: params.mode, exempt: false, reason: `${params.pinned ? 'pin' : 'unpin'} by non-exempt user` };
+  return {
+    record: true,
+    mode: params.mode,
+    exempt: false,
+    reason: `${params.pinned ? 'pin' : 'unpin'} by non-exempt user`,
+  };
 }
 
 export class NoPinService {

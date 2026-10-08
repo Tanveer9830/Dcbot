@@ -111,7 +111,13 @@ function createMemoryTestDatabase(): TestDatabase {
   ): Promise<QueryResult<T>> => {
     if (isEnsureMigrationsTable(text)) {
       if (migrationsTableCreated) {
-        return Promise.resolve({ rows: [], rowCount: 0, command: 'CREATE', oid: 0, fields: [] } as unknown as QueryResult<T>);
+        return Promise.resolve({
+          rows: [],
+          rowCount: 0,
+          command: 'CREATE',
+          oid: 0,
+          fields: [],
+        } as unknown as QueryResult<T>);
       }
       migrationsTableCreated = true;
     }

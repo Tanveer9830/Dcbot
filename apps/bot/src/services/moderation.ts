@@ -1,10 +1,4 @@
-import {
-  EmbedBuilder,
-  GuildMember,
-  PermissionFlagsBits,
-  type Guild,
-  type User,
-} from 'discord.js';
+import { EmbedBuilder, GuildMember, PermissionFlagsBits, type Guild, type User } from 'discord.js';
 import { canModerateTarget, ValidationError, type ModerationActionType } from '@dcbot/shared';
 import type { Repositories } from '../database/repositories.js';
 import type { LoggingService } from './logging.js';
@@ -44,7 +38,9 @@ export class ModerationService {
     const botMember = params.guild.members.me;
     const botHighest = botMember?.roles.highest.position ?? 0;
     const actorHighest =
-      params.actor instanceof GuildMember ? params.actor.roles.highest.position : Number.MAX_SAFE_INTEGER;
+      params.actor instanceof GuildMember
+        ? params.actor.roles.highest.position
+        : Number.MAX_SAFE_INTEGER;
 
     const allowed = canModerateTarget({
       targetIsGuildOwner: params.guild.ownerId === params.target.id,
@@ -73,7 +69,10 @@ export class ModerationService {
     const blocked = this.hierarchyCheck(params);
     if (blocked) return { success: false, message: blocked };
     if (!params.target.kickable) {
-      return { success: false, message: `I cannot kick ${params.target} (hierarchy or permissions).` };
+      return {
+        success: false,
+        message: `I cannot kick ${params.target} (hierarchy or permissions).`,
+      };
     }
     try {
       await params.target.kick(truncateReason(params.reason));
@@ -91,7 +90,10 @@ export class ModerationService {
     const blocked = this.hierarchyCheck(params);
     if (blocked) return { success: false, message: blocked };
     if (!params.target.moderatable) {
-      return { success: false, message: `I cannot time out ${params.target} (hierarchy or permissions).` };
+      return {
+        success: false,
+        message: `I cannot time out ${params.target} (hierarchy or permissions).`,
+      };
     }
     try {
       await params.target.timeout(params.durationMs, truncateReason(params.reason));
@@ -139,7 +141,10 @@ export class ModerationService {
         .setTimestamp();
       await params.target.send({ embeds: [embed] });
     } catch {
-      this.logger.debug('moderation: DM failed', { guildId: params.guild.id, targetId: params.target.id });
+      this.logger.debug('moderation: DM failed', {
+        guildId: params.guild.id,
+        targetId: params.target.id,
+      });
     }
     return { ...recorded, warningCount: warnings.length, caseNumber: warning.id };
   }
@@ -161,10 +166,9 @@ export class ModerationService {
       throw new ValidationError('That channel does not support bulk delete.');
     }
     try {
-      const deleted = await (channel as { bulkDelete: (n: number, filterOld?: boolean) => Promise<{ size: number }> }).bulkDelete(
-        count,
-        true,
-      );
+      const deleted = await (
+        channel as { bulkDelete: (n: number, filterOld?: boolean) => Promise<{ size: number }> }
+      ).bulkDelete(count, true);
       await this.repos.moderation
         .createCase({ guildId: guild.id, type: 'purge', targetId: channelId, actorId, reason })
         .catch(() => undefined);
@@ -185,15 +189,26 @@ export class ModerationService {
     if (!channel || !('setRateLimitPerUser' in channel)) {
       throw new ValidationError('That channel does not support slowmode.');
     }
-    await (channel as { setRateLimitPerUser: (s: number, r?: string) => Promise<unknown> }).setRateLimitPerUser(
-      seconds,
-      truncateReason(reason),
+    await (
+      channel as { setRateLimitPerUser: (s: number, r?: string) => Promise<unknown> }
+    ).setRateLimitPerUser(seconds, truncateReason(reason));
+    await this.recordCaseById(
+      guild.id,
+      'note',
+      channelId,
+      actorId,
+      `Slowmode set to ${seconds}s: ${reason}`,
     );
-    await this.recordCaseById(guild.id, 'note', channelId, actorId, `Slowmode set to ${seconds}s: ${reason}`);
     return `Slowmode set to ${seconds}s in <#${channelId}>.`;
   }
 
-  async setLocked(guild: Guild, channelId: string, locked: boolean, actorId: string, reason: string): Promise<string> {
+  async setLocked(
+    guild: Guild,
+    channelId: string,
+    locked: boolean,
+    actorId: string,
+    reason: string,
+  ): Promise<string> {
     const channel = guild.channels.cache.get(channelId);
     if (!channel || !('permissionOverwrites' in channel)) {
       throw new ValidationError('That channel cannot be locked.');
@@ -202,17 +217,17 @@ export class ModerationService {
       SendMessages: locked ? false : null,
       AddReactions: locked ? false : null,
     });
-    await this.recordCaseById(
-      guild.id,
-      locked ? 'lock' : 'unlock',
-      channelId,
-      actorId,
-      reason,
-    );
+    await this.recordCaseById(guild.id, locked ? 'lock' : 'unlock', channelId, actorId, reason);
     return locked ? `Locked <#${channelId}>.` : `Unlocked <#${channelId}>.`;
   }
 
-  async addRole(guild: Guild, target: GuildMember, roleId: string, actorId: string, reason: string): Promise<string> {
+  async addRole(
+    guild: Guild,
+    target: GuildMember,
+    roleId: string,
+    actorId: string,
+    reason: string,
+  ): Promise<string> {
     const role = guild.roles.cache.get(roleId);
     if (!role) throw new ValidationError('That role does not exist.');
     const botHighest = guild.members.me?.roles.highest.position ?? 0;
@@ -220,10 +235,19 @@ export class ModerationService {
       throw new ValidationError('That role is above my highest role, so I cannot assign it.');
     }
     if (role.permissions.has(PermissionFlagsBits.Administrator)) {
-      throw new ValidationError('Refusing to assign a role with Administrator through this command.');
+      throw new ValidationError(
+        'Refusing to assign a role with Administrator through this command.',
+      );
     }
     await target.roles.add(role, truncateReason(reason));
-    await this.recordCaseById(guild.id, 'role_add', target.id, actorId, `Added ${role.name}: ${reason}`, roleId);
+    await this.recordCaseById(
+      guild.id,
+      'role_add',
+      target.id,
+      actorId,
+      `Added ${role.name}: ${reason}`,
+      roleId,
+    );
     return `Added ${role} to ${target}.`;
   }
 
@@ -237,7 +261,14 @@ export class ModerationService {
     const role = guild.roles.cache.get(roleId);
     if (!role) throw new ValidationError('That role does not exist.');
     await target.roles.remove(role, truncateReason(reason));
-    await this.recordCaseById(guild.id, 'role_remove', target.id, actorId, `Removed ${role.name}: ${reason}`, roleId);
+    await this.recordCaseById(
+      guild.id,
+      'role_remove',
+      target.id,
+      actorId,
+      `Removed ${role.name}: ${reason}`,
+      roleId,
+    );
     return `Removed ${role} from ${target}.`;
   }
 
@@ -259,7 +290,11 @@ export class ModerationService {
     return nickname ? `Set ${target}'s nickname to ${nickname}.` : `Cleared ${target}'s nickname.`;
   }
 
-  private async recordCase(params: ActionParams | (Omit<ActionParams, 'target'> & { targetId: string }), type: ModerationActionType, targetId?: string): Promise<number> {
+  private async recordCase(
+    params: ActionParams | (Omit<ActionParams, 'target'> & { targetId: string }),
+    type: ModerationActionType,
+    targetId?: string,
+  ): Promise<number> {
     return this.recordCaseById(
       params.guild.id,
       type,
@@ -296,18 +331,24 @@ export class ModerationService {
   ): Promise<ActionResult> {
     const caseNumber = await this.recordCase(params, type);
     const guild = params.guild;
-    await this.logging.send(guild, 'moderation', () =>
-      new EmbedBuilder()
-        .setTitle(`${type.toUpperCase()} - case #${caseNumber}`)
-        .setColor(0xed4245)
-        .addFields(
-          { name: 'Target', value: `${params.target} (${params.target.id})`, inline: true },
-          { name: 'Moderator', value: `${params.actor} (${params.actor.id})`, inline: true },
-          ...(durationMs ? [{ name: 'Duration', value: `${Math.round(durationMs / 60000)}m`, inline: true }] : []),
-          { name: 'Reason', value: params.reason },
-        )
-        .setTimestamp(),
-    { event: 'moderation' });
+    await this.logging.send(
+      guild,
+      'moderation',
+      () =>
+        new EmbedBuilder()
+          .setTitle(`${type.toUpperCase()} - case #${caseNumber}`)
+          .setColor(0xed4245)
+          .addFields(
+            { name: 'Target', value: `${params.target} (${params.target.id})`, inline: true },
+            { name: 'Moderator', value: `${params.actor} (${params.actor.id})`, inline: true },
+            ...(durationMs
+              ? [{ name: 'Duration', value: `${Math.round(durationMs / 60000)}m`, inline: true }]
+              : []),
+            { name: 'Reason', value: params.reason },
+          )
+          .setTimestamp(),
+      { event: 'moderation' },
+    );
     return { success: true, caseNumber, message: `${message} (case #${caseNumber})` };
   }
 }

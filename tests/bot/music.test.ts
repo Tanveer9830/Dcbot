@@ -28,14 +28,26 @@ describe('Spotify link parsing', () => {
       kind: 'track',
       id: '4cOdK2wGLETKBW3PvgPWqT',
     });
-    expect(parseSpotifyUrl('https://open.spotify.com/playlist/37i9dQZF1DXcBWIGoYBM5M')?.kind).toBe('playlist');
-    expect(parseSpotifyUrl('https://open.spotify.com/album/1DFixLWuPkv3KT3TnV35m3')?.kind).toBe('album');
-    expect(parseSpotifyUrl('https://open.spotify.com/artist/06HL4z0CvFAxyc27GXpf02')?.kind).toBe('artist');
+    expect(parseSpotifyUrl('https://open.spotify.com/playlist/37i9dQZF1DXcBWIGoYBM5M')?.kind).toBe(
+      'playlist',
+    );
+    expect(parseSpotifyUrl('https://open.spotify.com/album/1DFixLWuPkv3KT3TnV35m3')?.kind).toBe(
+      'album',
+    );
+    expect(parseSpotifyUrl('https://open.spotify.com/artist/06HL4z0CvFAxyc27GXpf02')?.kind).toBe(
+      'artist',
+    );
   });
 
   it('handles internationalised paths and share parameters', () => {
-    const parsed = parseSpotifyUrl('https://open.spotify.com/intl-de/track/4cOdK2wGLETKBW3PvgPWqT?si=abc123');
-    expect(parsed).toMatchObject({ kind: 'track', id: '4cOdK2wGLETKBW3PvgPWqT', shareId: 'abc123' });
+    const parsed = parseSpotifyUrl(
+      'https://open.spotify.com/intl-de/track/4cOdK2wGLETKBW3PvgPWqT?si=abc123',
+    );
+    expect(parsed).toMatchObject({
+      kind: 'track',
+      id: '4cOdK2wGLETKBW3PvgPWqT',
+      shareId: 'abc123',
+    });
   });
 
   it('rejects everything that is not a Spotify link', () => {
@@ -128,7 +140,10 @@ describe('TrackQueue', () => {
   it('shuffles without losing or duplicating tracks', () => {
     const queue = new TrackQueue();
     const ids = ['1', '2', '3', '4', '5', '6'];
-    queue.addMany(ids.map((id) => track(id)), 'user-1');
+    queue.addMany(
+      ids.map((id) => track(id)),
+      'user-1',
+    );
 
     let seed = 0;
     const deterministic = () => {

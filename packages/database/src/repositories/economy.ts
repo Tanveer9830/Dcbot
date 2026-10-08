@@ -58,7 +58,10 @@ export class EconomyRepository {
     return result.rows[0] ? mapAccount(result.rows[0]) : this.ensureAccount(guildId, userId);
   }
 
-  async leaderboard(guildId: string, limit = 10): Promise<Array<EconomyAccount & { rank: number }>> {
+  async leaderboard(
+    guildId: string,
+    limit = 10,
+  ): Promise<Array<EconomyAccount & { rank: number }>> {
     const result = await this.db.query<Record<string, unknown>>(
       `SELECT * FROM economy_accounts WHERE guild_id = $1
         ORDER BY (wallet + bank) DESC, user_id LIMIT $2`,
@@ -106,7 +109,9 @@ export class EconomyRepository {
           `SELECT ${column} AS claimed_at FROM economy_accounts WHERE guild_id = $1 AND user_id = $2`,
           [params.guildId, params.userId],
         );
-        const claimedAt = current.rows[0]?.claimed_at ? new Date(String(current.rows[0]!.claimed_at)) : new Date();
+        const claimedAt = current.rows[0]?.claimed_at
+          ? new Date(String(current.rows[0]!.claimed_at))
+          : new Date();
         throw new CooldownError(new Date(claimedAt.getTime() + cooldownMs));
       }
 
@@ -301,7 +306,8 @@ export class EconomyRepository {
         [params.guildId, params.userId, params.delta],
       );
       const row = result.rows[0];
-      if (!row) throw new InsufficientFundsError('That adjustment would make the balance negative.');
+      if (!row)
+        throw new InsufficientFundsError('That adjustment would make the balance negative.');
       const account = mapAccount(row);
       await insertLedger(tx, {
         guildId: params.guildId,
@@ -326,7 +332,12 @@ export class EconomyRepository {
   }
 }
 
-async function ensure(tx: Queryable, guildId: string, userId: string, startingBalance: number): Promise<void> {
+async function ensure(
+  tx: Queryable,
+  guildId: string,
+  userId: string,
+  startingBalance: number,
+): Promise<void> {
   await tx.query(
     `INSERT INTO economy_accounts (guild_id, user_id, wallet)
      VALUES ($1, $2, $3::bigint) ON CONFLICT (guild_id, user_id) DO NOTHING`,

@@ -73,7 +73,9 @@ describe('bot metrics API', () => {
 
   it('reports measured health values, never invented ones', async () => {
     const base = await start(TOKEN);
-    const response = await fetch(`${base}/health`, { headers: { authorization: `Bearer ${TOKEN}` } });
+    const response = await fetch(`${base}/health`, {
+      headers: { authorization: `Bearer ${TOKEN}` },
+    });
     expect(response.status).toBe(200);
     const body = (await response.json()) as Record<string, unknown>;
 
@@ -90,7 +92,9 @@ describe('bot metrics API', () => {
 
   it('returns process, gateway, log and command metrics', async () => {
     const base = await start(TOKEN);
-    const response = await fetch(`${base}/metrics`, { headers: { authorization: `Bearer ${TOKEN}` } });
+    const response = await fetch(`${base}/metrics`, {
+      headers: { authorization: `Bearer ${TOKEN}` },
+    });
     expect(response.status).toBe(200);
     const body = (await response.json()) as {
       process: { pid: number; node: string; memory: { rss: string } };

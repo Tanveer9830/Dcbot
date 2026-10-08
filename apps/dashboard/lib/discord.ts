@@ -53,7 +53,10 @@ async function request<T>(path: string, token: string, init: RequestInit = {}): 
   });
   if (!response.ok) {
     const body = await response.text().catch(() => '');
-    throw new DiscordApiError(`Discord API ${path} -> ${response.status}: ${body.slice(0, 200)}`, response.status);
+    throw new DiscordApiError(
+      `Discord API ${path} -> ${response.status}: ${body.slice(0, 200)}`,
+      response.status,
+    );
   }
   return (await response.json()) as T;
 }
@@ -72,11 +75,18 @@ export function currentUserGuilds(token: string): Promise<DiscordGuild[]> {
   return request<DiscordGuild[]>('/users/@me/guilds', token);
 }
 
-export function guildMember(token: string, guildId: string, userId: string): Promise<DiscordMember> {
+export function guildMember(
+  token: string,
+  guildId: string,
+  userId: string,
+): Promise<DiscordMember> {
   return request<DiscordMember>(`/guilds/${guildId}/members/${userId}`, token);
 }
 
-export function avatarUrl(user: DiscordUser | { id: string; avatar: string | null }, size = 128): string {
+export function avatarUrl(
+  user: DiscordUser | { id: string; avatar: string | null },
+  size = 128,
+): string {
   if (!user.avatar) {
     return `https://cdn.discordapp.com/embed/avatars/${Number(BigInt(user.id) % 6n)}.png`;
   }

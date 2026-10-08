@@ -63,7 +63,11 @@ export class MusicManager {
     logger: Logger;
     fetchImpl?: typeof fetch;
   }) {
-    this.spotify = new SpotifyMetadataClient(params.spotifyClientId, params.spotifyClientSecret, params.fetchImpl);
+    this.spotify = new SpotifyMetadataClient(
+      params.spotifyClientId,
+      params.spotifyClientSecret,
+      params.fetchImpl,
+    );
     this.logger = params.logger;
     this.voice = params.voice;
     if (params.host && params.password) {
@@ -123,7 +127,11 @@ export class MusicManager {
       service: 'lavalink',
       status: probe.ok && this.lavalink.isConnected ? 'ok' : 'degraded',
       latencyMs: probe.latencyMs,
-      detail: probe.ok ? (this.lavalink.isConnected ? 'websocket + REST reachable' : 'REST reachable, websocket down') : probe.detail,
+      detail: probe.ok
+        ? this.lavalink.isConnected
+          ? 'websocket + REST reachable'
+          : 'REST reachable, websocket down'
+        : probe.detail,
       checkedAt: new Date().toISOString(),
     };
   }
@@ -144,12 +152,19 @@ export class MusicManager {
       }
       const resolved = await this.spotify.resolve(link);
       if (resolved.queries.length === 0) {
-        return { tracks: [], note: 'That Spotify link could not be resolved into playable tracks.' };
+        return {
+          tracks: [],
+          note: 'That Spotify link could not be resolved into playable tracks.',
+        };
       }
       const tracks: LavalinkTrack[] = [];
       for (const search of resolved.queries) {
         const result = await node.loadTracks(`ytsearch:${search}`);
-        const first = Array.isArray(result.data) ? result.data[0] : result.loadType === 'track' ? (result.data as LavalinkTrack) : null;
+        const first = Array.isArray(result.data)
+          ? result.data[0]
+          : result.loadType === 'track'
+            ? (result.data as LavalinkTrack)
+            : null;
         if (first) tracks.push(first);
       }
       return {
@@ -167,13 +182,18 @@ export class MusicManager {
       const error = result.data as { message?: string };
       throw new ValidationError(`Could not load that track: ${error?.message ?? 'unknown error'}`);
     }
-    if (result.loadType === 'empty' || !result.data) return { tracks: [], note: 'No results found.' };
+    if (result.loadType === 'empty' || !result.data)
+      return { tracks: [], note: 'No results found.' };
     const tracks = Array.isArray(result.data) ? result.data : [result.data as LavalinkTrack];
     return { tracks, note: null };
   }
 
   /** Ensures a player exists and is connected to the given voice channel. */
-  async connect(params: { guildId: string; voiceChannelId: string; textChannelId: string }): Promise<GuildPlayer> {
+  async connect(params: {
+    guildId: string;
+    voiceChannelId: string;
+    textChannelId: string;
+  }): Promise<GuildPlayer> {
     const node = this.requireNode();
     let player = this.players.get(params.guildId);
     if (player && player.voiceChannelId === params.voiceChannelId) {
@@ -219,7 +239,11 @@ export class MusicManager {
       await this.stop(player.guildId, { destroy: false });
       return null;
     }
-    await node.updatePlayer({ guildId: player.guildId, encodedTrack: next.track.encoded, paused: false });
+    await node.updatePlayer({
+      guildId: player.guildId,
+      encodedTrack: next.track.encoded,
+      paused: false,
+    });
     player.paused = false;
     return next;
   }
@@ -246,11 +270,20 @@ export class MusicManager {
     const prior = player.queue.previous();
     if (!prior) return null;
     const node = this.requireNode();
-    await node.updatePlayer({ guildId, encodedTrack: prior.track.encoded, position: 0, paused: false });
+    await node.updatePlayer({
+      guildId,
+      encodedTrack: prior.track.encoded,
+      position: 0,
+      paused: false,
+    });
     return prior;
   }
 
-  async setVolume(guildId: string, volume: number, maxVolume = DEFAULT_MUSIC.maxVolume): Promise<number> {
+  async setVolume(
+    guildId: string,
+    volume: number,
+    maxVolume = DEFAULT_MUSIC.maxVolume,
+  ): Promise<number> {
     const node = this.requireNode();
     const player = this.players.get(guildId);
     if (!player) throw new ValidationError('Nothing is playing.');
@@ -266,7 +299,8 @@ export class MusicManager {
     if (!player) throw new ValidationError('Nothing is playing.');
     const current = player.queue.getCurrent();
     if (!current) throw new ValidationError('Nothing is playing.');
-    if (!current.track.info.isSeekable) throw new ValidationError('That track cannot be seeked (it is a stream).');
+    if (!current.track.info.isSeekable)
+      throw new ValidationError('That track cannot be seeked (it is a stream).');
     const clamped = Math.max(0, Math.min(current.track.info.length, Math.floor(positionMs)));
     await node.updatePlayer({ guildId, position: clamped });
     return clamped;

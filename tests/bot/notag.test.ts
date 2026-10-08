@@ -4,8 +4,17 @@ import { evaluateNoTag, type NoTagMode } from '../../apps/bot/src/security/noTag
 const PROTECTED = '200000000000000001';
 const OFFENDER = '200000000000000002';
 
-function entry(mode: NoTagMode, overrides: Partial<Parameters<typeof evaluateNoTag>[0]['protectedUsers'][number]> = {}) {
-  return { userId: PROTECTED, mode, exemptRoleIds: [] as readonly string[], exemptUserIds: [] as readonly string[], ...overrides };
+function entry(
+  mode: NoTagMode,
+  overrides: Partial<Parameters<typeof evaluateNoTag>[0]['protectedUsers'][number]> = {},
+) {
+  return {
+    userId: PROTECTED,
+    mode,
+    exemptRoleIds: [] as readonly string[],
+    exemptUserIds: [] as readonly string[],
+    ...overrides,
+  };
 }
 
 const base = {
@@ -32,11 +41,17 @@ describe('/no-tag decision logic', () => {
   });
 
   it('does nothing when no protected user was mentioned', () => {
-    expect(evaluateNoTag({ ...base, mentionedUserIds: ['299999999999999999'] }).protected).toBe(false);
+    expect(evaluateNoTag({ ...base, mentionedUserIds: ['299999999999999999'] }).protected).toBe(
+      false,
+    );
   });
 
   it('never flags someone for mentioning themselves', () => {
-    const decision = evaluateNoTag({ ...base, offenderId: PROTECTED, mentionedUserIds: [PROTECTED] });
+    const decision = evaluateNoTag({
+      ...base,
+      offenderId: PROTECTED,
+      mentionedUserIds: [PROTECTED],
+    });
     expect(decision.protected).toBe(false);
   });
 

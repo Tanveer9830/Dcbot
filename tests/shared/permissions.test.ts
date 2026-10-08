@@ -29,7 +29,10 @@ describe('permission helpers', () => {
     expect(hasAll(bitfield, [ban, manageGuild])).toBe(false);
     expect(hasAny(bitfield, [manageGuild, kick])).toBe(true);
     expect(hasAny(bitfield, [manageGuild, manageRoles])).toBe(false);
-    expect(missingPermissions(bitfield, [ban, manageGuild, manageRoles])).toEqual([manageGuild, manageRoles]);
+    expect(missingPermissions(bitfield, [ban, manageGuild, manageRoles])).toEqual([
+      manageGuild,
+      manageRoles,
+    ]);
   });
 
   it('enforces the role hierarchy the same way Discord does', () => {
@@ -49,14 +52,40 @@ describe('permission helpers', () => {
   it('lets staff act through Administrator, a staff role, or the trusted list', () => {
     const roleIds = ['111'];
     expect(
-      isGuildStaff({ permissions: PERMISSION_BIT.MANAGE_GUILD, roleIds: [], staffRoleIds: [], trustedUserIds: [], userId: 'u' }),
+      isGuildStaff({
+        permissions: PERMISSION_BIT.MANAGE_GUILD,
+        roleIds: [],
+        staffRoleIds: [],
+        trustedUserIds: [],
+        userId: 'u',
+      }),
     ).toBe(true);
-    expect(isGuildStaff({ permissions: 0n, roleIds, staffRoleIds: ['111'], trustedUserIds: [], userId: 'u' })).toBe(true);
     expect(
-      isGuildStaff({ permissions: 0n, roleIds: ['999'], staffRoleIds: ['111'], trustedUserIds: ['u'], userId: 'u' }),
+      isGuildStaff({
+        permissions: 0n,
+        roleIds,
+        staffRoleIds: ['111'],
+        trustedUserIds: [],
+        userId: 'u',
+      }),
     ).toBe(true);
     expect(
-      isGuildStaff({ permissions: 0n, roleIds: ['999'], staffRoleIds: ['111'], trustedUserIds: ['other'], userId: 'u' }),
+      isGuildStaff({
+        permissions: 0n,
+        roleIds: ['999'],
+        staffRoleIds: ['111'],
+        trustedUserIds: ['u'],
+        userId: 'u',
+      }),
+    ).toBe(true);
+    expect(
+      isGuildStaff({
+        permissions: 0n,
+        roleIds: ['999'],
+        staffRoleIds: ['111'],
+        trustedUserIds: ['other'],
+        userId: 'u',
+      }),
     ).toBe(false);
   });
 });

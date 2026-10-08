@@ -9,7 +9,11 @@
 import path from 'node:path';
 import { writeFile } from 'node:fs/promises';
 import { loadCommands } from '../apps/bot/src/commands/loader.js';
-import { CommandRegistry, commandName, formatPermissions } from '../apps/bot/src/commands/registry.js';
+import {
+  CommandRegistry,
+  commandName,
+  formatPermissions,
+} from '../apps/bot/src/commands/registry.js';
 import { CooldownManager } from '../apps/bot/src/utils/cooldown.js';
 import { Logger } from '../apps/bot/src/utils/logger.js';
 
@@ -49,13 +53,18 @@ function renderOptions(options: OptionJson[] | undefined, depth: number): string
 }
 
 async function main(): Promise<void> {
-  const loaded = await loadCommands(path.resolve('apps/bot/src/commands'), new Logger({ level: 'error' }));
+  const loaded = await loadCommands(
+    path.resolve('apps/bot/src/commands'),
+    new Logger({ level: 'error' }),
+  );
   const registry = new CommandRegistry(new CooldownManager());
   registry.registerAll(loaded.commands);
   const validation = registry.validate();
   if (!validation.valid) throw new Error(validation.errors.join('\n'));
 
-  const commands = [...loaded.commands].sort((a, b) => commandName(a).localeCompare(commandName(b)));
+  const commands = [...loaded.commands].sort((a, b) =>
+    commandName(a).localeCompare(commandName(b)),
+  );
   const ownerOnly = commands.filter((command) => command.ownerOnly);
   const staffOnly = commands.filter((command) => command.staffOnly && !command.ownerOnly);
   const publicCommands = commands.filter((command) => !command.ownerOnly && !command.staffOnly);

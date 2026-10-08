@@ -1,11 +1,6 @@
 import { EmbedBuilder } from 'discord.js';
 import type { Repositories } from '../database/repositories.js';
-import {
-  OwnerPolicy,
-  ValidationError,
-  renderTemplate,
-  type CustomCommand,
-} from '@dcbot/shared';
+import { OwnerPolicy, ValidationError, renderTemplate, type CustomCommand } from '@dcbot/shared';
 
 export interface RenderedResponse {
   content?: string;
@@ -55,12 +50,12 @@ export class CustomCommandService {
     return command;
   }
 
-  async updateGlobal(name: string, patch: Record<string, unknown>, actorId: string): Promise<CustomCommand> {
-    const command = await this.repos.customCommands.updateGlobal(
-      name,
-      patch as never,
-      actorId,
-    );
+  async updateGlobal(
+    name: string,
+    patch: Record<string, unknown>,
+    actorId: string,
+  ): Promise<CustomCommand> {
+    const command = await this.repos.customCommands.updateGlobal(name, patch as never, actorId);
     await this.repos.audit.record({
       actorId,
       actorKind: 'bot_owner',
@@ -101,7 +96,11 @@ export class CustomCommandService {
   }
 
   /** Owner-only preview: renders without publishing. */
-  async previewGlobal(name: string, actorId: string, vars: Record<string, string> = {}): Promise<RenderedResponse> {
+  async previewGlobal(
+    name: string,
+    actorId: string,
+    vars: Record<string, string> = {},
+  ): Promise<RenderedResponse> {
     this.owners.requireOwner(actorId, 'preview global custom commands');
     const command = await this.repos.customCommands.getGlobal(name);
     if (!command) throw new ValidationError(`Global command "${name}" does not exist.`);
@@ -177,11 +176,19 @@ export class CustomCommandService {
     };
     const embed = new EmbedBuilder()
       .setColor(raw.color ?? 0x5865f2)
-      .setTitle(raw.title ? renderTemplate(raw.title, vars, { strict: false, maxLength: 250 }) : null)
-      .setDescription(
-        raw.description ? renderTemplate(raw.description, vars, { strict: false, maxLength: 4000 }) : null,
+      .setTitle(
+        raw.title ? renderTemplate(raw.title, vars, { strict: false, maxLength: 250 }) : null,
       )
-      .setFooter(raw.footer ? { text: renderTemplate(raw.footer, vars, { strict: false, maxLength: 2000 }) } : null);
+      .setDescription(
+        raw.description
+          ? renderTemplate(raw.description, vars, { strict: false, maxLength: 4000 })
+          : null,
+      )
+      .setFooter(
+        raw.footer
+          ? { text: renderTemplate(raw.footer, vars, { strict: false, maxLength: 2000 }) }
+          : null,
+      );
     for (const field of raw.fields ?? []) {
       embed.addFields({
         name: renderTemplate(field.name, vars, { strict: false, maxLength: 250 }),
@@ -189,6 +196,10 @@ export class CustomCommandService {
         inline: field.inline ?? false,
       });
     }
-    return { embeds: [embed], ephemeral: command.ephemeral, deleteInvocation: command.deleteInvocation };
+    return {
+      embeds: [embed],
+      ephemeral: command.ephemeral,
+      deleteInvocation: command.deleteInvocation,
+    };
   }
 }

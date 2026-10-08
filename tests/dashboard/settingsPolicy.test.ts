@@ -37,8 +37,15 @@ describe('dashboard settings write policy', () => {
   });
 
   it('accepts a valid patch and passes it through untouched', () => {
-    const result = validateSettingsRequest({ group: 'welcome', patch: { enabled: true, message: 'hi {{user}}' } });
-    expect(result).toEqual({ ok: true, group: 'welcome', patch: { enabled: true, message: 'hi {{user}}' } });
+    const result = validateSettingsRequest({
+      group: 'welcome',
+      patch: { enabled: true, message: 'hi {{user}}' },
+    });
+    expect(result).toEqual({
+      ok: true,
+      group: 'welcome',
+      patch: { enabled: true, message: 'hi {{user}}' },
+    });
   });
 
   it('requires an object patch', () => {

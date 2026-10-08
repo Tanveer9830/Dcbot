@@ -16,7 +16,11 @@ const EVENT_KEYS = [
   'errors',
 ];
 
-export default async function LoggingPage({ params }: { params: { guildId: string } }): Promise<JSX.Element> {
+export default async function LoggingPage({
+  params,
+}: {
+  params: { guildId: string };
+}): Promise<JSX.Element> {
   const context = await loadGuildPage(params.guildId);
   const config = (context.settings.logging ?? {}) as {
     enabled?: boolean;
@@ -30,20 +34,55 @@ export default async function LoggingPage({ params }: { params: { guildId: strin
     <div>
       <h2>Logging</h2>
       <div className="alert" style={{ borderColor: 'var(--border)', color: 'var(--muted)' }}>
-        Only events Discord actually exposes can be logged. Deleted message content is shown only when the message was
-        still in cache - the bot never reconstructs history it did not see.
+        Only events Discord actually exposes can be logged. Deleted message content is shown only
+        when the message was still in cache - the bot never reconstructs history it did not see.
       </div>
       <SettingsForm
         guildId={context.guildId}
         group="logging"
         fields={[
-          { key: 'enabled', label: 'Logging enabled', type: 'boolean', value: config.enabled ?? false },
-          { key: 'channels.moderation', label: 'Moderation channel ID', type: 'text', value: channels.moderation ?? '' },
-          { key: 'channels.security', label: 'Security channel ID', type: 'text', value: channels.security ?? '' },
-          { key: 'channels.messages', label: 'Message log channel ID', type: 'text', value: channels.messages ?? '' },
-          { key: 'channels.members', label: 'Member log channel ID', type: 'text', value: channels.members ?? '' },
-          { key: 'channels.tickets', label: 'Ticket log channel ID', type: 'text', value: channels.tickets ?? '' },
-          { key: 'channels.errors', label: 'Error channel ID', type: 'text', value: channels.errors ?? '' },
+          {
+            key: 'enabled',
+            label: 'Logging enabled',
+            type: 'boolean',
+            value: config.enabled ?? false,
+          },
+          {
+            key: 'channels.moderation',
+            label: 'Moderation channel ID',
+            type: 'text',
+            value: channels.moderation ?? '',
+          },
+          {
+            key: 'channels.security',
+            label: 'Security channel ID',
+            type: 'text',
+            value: channels.security ?? '',
+          },
+          {
+            key: 'channels.messages',
+            label: 'Message log channel ID',
+            type: 'text',
+            value: channels.messages ?? '',
+          },
+          {
+            key: 'channels.members',
+            label: 'Member log channel ID',
+            type: 'text',
+            value: channels.members ?? '',
+          },
+          {
+            key: 'channels.tickets',
+            label: 'Ticket log channel ID',
+            type: 'text',
+            value: channels.tickets ?? '',
+          },
+          {
+            key: 'channels.errors',
+            label: 'Error channel ID',
+            type: 'text',
+            value: channels.errors ?? '',
+          },
           ...EVENT_KEYS.map((key) => ({
             key: `events.${key}`,
             label: `Log ${key.replace(/_/g, ' ')}`,
@@ -53,7 +92,8 @@ export default async function LoggingPage({ params }: { params: { guildId: strin
         ]}
       />
       <p className="muted" style={{ marginTop: 10 }}>
-        Nested keys are written into the <code>logging</code> JSONB group; unknown keys are ignored by the bot.
+        Nested keys are written into the <code>logging</code> JSONB group; unknown keys are ignored
+        by the bot.
       </p>
     </div>
   );

@@ -1,5 +1,11 @@
 import { SlashCommandBuilder } from 'discord.js';
-import { defineCommand, getTargetMember, requireService, successEmbed, ValidationError } from '../helpers.js';
+import {
+  defineCommand,
+  getTargetMember,
+  requireService,
+  successEmbed,
+  ValidationError,
+} from '../helpers.js';
 import { PERMISSION_BIT } from '@dcbot/shared';
 
 const rank = defineCommand({
@@ -12,13 +18,20 @@ const rank = defineCommand({
   async execute(ctx) {
     const service = requireService(ctx.context.services.leveling, 'leveling');
     const target = getTargetMember(ctx.interaction, 'user') ?? ctx.member;
-    const embed = await service.rankEmbed(ctx.guild.id, target.id, target.displayName, target.user.displayAvatarURL());
+    const embed = await service.rankEmbed(
+      ctx.guild.id,
+      target.id,
+      target.displayName,
+      target.user.displayAvatarURL(),
+    );
     await ctx.reply({ embeds: [embed] });
   },
 });
 
 const leaderboard = defineCommand({
-  data: new SlashCommandBuilder().setName('leaderboard').setDescription('Shows the XP leaderboard.'),
+  data: new SlashCommandBuilder()
+    .setName('leaderboard')
+    .setDescription('Shows the XP leaderboard.'),
   description: 'Shows the XP leaderboard.',
   cooldownMs: 5000,
   async execute(ctx) {
@@ -40,32 +53,52 @@ const leveling = defineCommand({
   data: new SlashCommandBuilder()
     .setName('leveling')
     .setDescription('Configures XP and level rewards (staff only).')
-    .addSubcommand((sub) => sub.setName('status').setDescription('Shows the current configuration.'))
+    .addSubcommand((sub) =>
+      sub.setName('status').setDescription('Shows the current configuration.'),
+    )
     .addSubcommand((sub) =>
       sub
         .setName('enable')
         .setDescription('Enables or disables leveling.')
-        .addBooleanOption((option) => option.setName('enabled').setDescription('Enabled').setRequired(true)),
+        .addBooleanOption((option) =>
+          option.setName('enabled').setDescription('Enabled').setRequired(true),
+        ),
     )
     .addSubcommand((sub) =>
       sub
         .setName('multiplier')
         .setDescription('Sets the XP multiplier.')
-        .addNumberOption((option) => option.setName('value').setDescription('0.1 - 10').setMinValue(0.1).setMaxValue(10).setRequired(true)),
+        .addNumberOption((option) =>
+          option
+            .setName('value')
+            .setDescription('0.1 - 10')
+            .setMinValue(0.1)
+            .setMaxValue(10)
+            .setRequired(true),
+        ),
     )
     .addSubcommand((sub) =>
       sub
         .setName('reward')
         .setDescription('Grants a role at a level.')
-        .addIntegerOption((option) => option.setName('level').setDescription('Level').setMinValue(1).setMaxValue(500).setRequired(true))
+        .addIntegerOption((option) =>
+          option
+            .setName('level')
+            .setDescription('Level')
+            .setMinValue(1)
+            .setMaxValue(500)
+            .setRequired(true),
+        )
         .addRoleOption((option) => option.setName('role').setDescription('Role').setRequired(true)),
     )
     .addSubcommand((sub) =>
       sub
         .setName('setxp')
-        .setDescription('Sets a member\'s XP directly (logged).')
+        .setDescription("Sets a member's XP directly (logged).")
         .addUserOption((option) => option.setName('user').setDescription('User').setRequired(true))
-        .addIntegerOption((option) => option.setName('xp').setDescription('Total XP').setMinValue(0).setRequired(true)),
+        .addIntegerOption((option) =>
+          option.setName('xp').setDescription('Total XP').setMinValue(0).setRequired(true),
+        ),
     ),
   description: 'Configures XP and level rewards.',
   staffOnly: true,
@@ -92,7 +125,11 @@ const leveling = defineCommand({
               { name: 'Announce level ups', value: String(config.announceLevelUp), inline: true },
               {
                 name: 'Role rewards',
-                value: rewards.map((reward) => `level ${reward.level} → <@&${reward.roleId}>`).join('\n').slice(0, 1000) || '_none_',
+                value:
+                  rewards
+                    .map((reward) => `level ${reward.level} → <@&${reward.roleId}>`)
+                    .join('\n')
+                    .slice(0, 1000) || '_none_',
               },
             ],
           },
@@ -135,7 +172,9 @@ const leveling = defineCommand({
         targetId: target.id,
         detail: { xp },
       });
-      await ctx.reply({ embeds: [successEmbed(`${target} is now level ${profile.level} with ${profile.xp} XP.`)] });
+      await ctx.reply({
+        embeds: [successEmbed(`${target} is now level ${profile.level} with ${profile.xp} XP.`)],
+      });
     }
   },
 });

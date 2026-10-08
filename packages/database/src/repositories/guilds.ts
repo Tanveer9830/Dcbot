@@ -79,7 +79,9 @@ export class GuildRepository {
   }
 
   async getGuild(guildId: string): Promise<GuildRow | null> {
-    const result = await this.db.query<GuildRow>('SELECT * FROM guilds WHERE guild_id = $1', [guildId]);
+    const result = await this.db.query<GuildRow>('SELECT * FROM guilds WHERE guild_id = $1', [
+      guildId,
+    ]);
     return result.rows[0] ?? null;
   }
 
@@ -98,11 +100,18 @@ export class GuildRepository {
     );
     const row = result.rows[0];
     if (row) return row;
-    await this.db.query('INSERT INTO guilds (guild_id) VALUES ($1) ON CONFLICT (guild_id) DO NOTHING', [guildId]);
-    await this.db.query('INSERT INTO guild_settings (guild_id) VALUES ($1) ON CONFLICT (guild_id) DO NOTHING', [
-      guildId,
-    ]);
-    const fresh = await this.db.query<GuildSettingsRow>('SELECT * FROM guild_settings WHERE guild_id = $1', [guildId]);
+    await this.db.query(
+      'INSERT INTO guilds (guild_id) VALUES ($1) ON CONFLICT (guild_id) DO NOTHING',
+      [guildId],
+    );
+    await this.db.query(
+      'INSERT INTO guild_settings (guild_id) VALUES ($1) ON CONFLICT (guild_id) DO NOTHING',
+      [guildId],
+    );
+    const fresh = await this.db.query<GuildSettingsRow>(
+      'SELECT * FROM guild_settings WHERE guild_id = $1',
+      [guildId],
+    );
     // When the guild row is absent the insert above fails on FK; fall back to defaults.
     return (
       fresh.rows[0] ??

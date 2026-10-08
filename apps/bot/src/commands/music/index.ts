@@ -1,5 +1,11 @@
 import { ChannelType, SlashCommandBuilder } from 'discord.js';
-import { defineCommand, requireService, successEmbed, errorEmbed, ValidationError } from '../helpers.js';
+import {
+  defineCommand,
+  requireService,
+  successEmbed,
+  errorEmbed,
+  ValidationError,
+} from '../helpers.js';
 import type { CommandExecutionContext } from '../../types.js';
 import { formatDuration, parseDuration } from '../../utils/format.js';
 import { PERMISSION_BIT } from '@dcbot/shared';
@@ -22,37 +28,59 @@ const music = defineCommand({
       sub
         .setName('play')
         .setDescription('Plays a URL or searches by name.')
-        .addStringOption((option) => option.setName('query').setDescription('YouTube URL, Spotify link, or search text').setRequired(true)),
+        .addStringOption((option) =>
+          option
+            .setName('query')
+            .setDescription('YouTube URL, Spotify link, or search text')
+            .setRequired(true),
+        ),
     )
     .addSubcommand((sub) => sub.setName('pause').setDescription('Pauses playback.'))
     .addSubcommand((sub) => sub.setName('resume').setDescription('Resumes playback.'))
     .addSubcommand((sub) => sub.setName('skip').setDescription('Skips the current track.'))
-    .addSubcommand((sub) => sub.setName('previous').setDescription('Goes back to the previous track.'))
-    .addSubcommand((sub) => sub.setName('stop').setDescription('Stops playback and clears the queue.'))
+    .addSubcommand((sub) =>
+      sub.setName('previous').setDescription('Goes back to the previous track.'),
+    )
+    .addSubcommand((sub) =>
+      sub.setName('stop').setDescription('Stops playback and clears the queue.'),
+    )
     .addSubcommand((sub) => sub.setName('queue').setDescription('Shows the upcoming queue.'))
     .addSubcommand((sub) => sub.setName('nowplaying').setDescription('Shows the current track.'))
     .addSubcommand((sub) =>
       sub
         .setName('volume')
         .setDescription('Sets the player volume.')
-        .addIntegerOption((option) => option.setName('percent').setDescription('0-150').setMinValue(0).setMaxValue(150).setRequired(true)),
+        .addIntegerOption((option) =>
+          option
+            .setName('percent')
+            .setDescription('0-150')
+            .setMinValue(0)
+            .setMaxValue(150)
+            .setRequired(true),
+        ),
     )
     .addSubcommand((sub) =>
       sub
         .setName('seek')
         .setDescription('Seeks to a position.')
-        .addStringOption((option) => option.setName('position').setDescription('e.g. 1m30s').setRequired(true)),
+        .addStringOption((option) =>
+          option.setName('position').setDescription('e.g. 1m30s').setRequired(true),
+        ),
     )
     .addSubcommand((sub) =>
       sub
         .setName('loop')
         .setDescription('Sets the loop mode.')
         .addStringOption((option) =>
-          option.setName('mode').setDescription('Mode').addChoices(
-            { name: 'off', value: 'off' },
-            { name: 'track', value: 'track' },
-            { name: 'queue', value: 'queue' },
-          ).setRequired(true),
+          option
+            .setName('mode')
+            .setDescription('Mode')
+            .addChoices(
+              { name: 'off', value: 'off' },
+              { name: 'track', value: 'track' },
+              { name: 'queue', value: 'queue' },
+            )
+            .setRequired(true),
         ),
     )
     .addSubcommand((sub) => sub.setName('shuffle').setDescription('Shuffles the queue.'))
@@ -60,10 +88,18 @@ const music = defineCommand({
       sub
         .setName('remove')
         .setDescription('Removes a track from the queue.')
-        .addIntegerOption((option) => option.setName('index').setDescription('Queue position (1-based)').setMinValue(1).setRequired(true)),
+        .addIntegerOption((option) =>
+          option
+            .setName('index')
+            .setDescription('Queue position (1-based)')
+            .setMinValue(1)
+            .setRequired(true),
+        ),
     )
     .addSubcommand((sub) => sub.setName('clear').setDescription('Clears the upcoming queue.'))
-    .addSubcommand((sub) => sub.setName('status').setDescription('Shows the music backend health.')),
+    .addSubcommand((sub) =>
+      sub.setName('status').setDescription('Shows the music backend health.'),
+    ),
   description: 'Music playback.',
   clientPermissions: [PERMISSION_BIT.CONNECT, PERMISSION_BIT.SPEAK],
   cooldownMs: 2000,
@@ -90,8 +126,19 @@ const music = defineCommand({
             color: health.status === 'ok' ? 0x57f287 : 0xfaa61a,
             fields: [
               { name: 'Status', value: health.status, inline: true },
-              { name: 'Latency', value: health.latencyMs !== undefined && health.latencyMs !== null ? `${health.latencyMs} ms` : 'n/a', inline: true },
-              { name: 'Spotify metadata', value: manager.spotifyConfigured ? 'configured' : 'not configured', inline: true },
+              {
+                name: 'Latency',
+                value:
+                  health.latencyMs !== undefined && health.latencyMs !== null
+                    ? `${health.latencyMs} ms`
+                    : 'n/a',
+                inline: true,
+              },
+              {
+                name: 'Spotify metadata',
+                value: manager.spotifyConfigured ? 'configured' : 'not configured',
+                inline: true,
+              },
               { name: 'Detail', value: health.detail ?? 'none' },
             ],
           },
@@ -114,7 +161,9 @@ const music = defineCommand({
         requestedBy: ctx.interaction.user.id,
       });
       if (result.added === 0) {
-        await ctx.reply({ embeds: [errorEmbed(result.note ?? 'Nothing could be loaded from that query.')] });
+        await ctx.reply({
+          embeds: [errorEmbed(result.note ?? 'Nothing could be loaded from that query.')],
+        });
         return;
       }
       const current = manager.getPlayer(guildId)?.queue.getCurrent();
@@ -141,12 +190,16 @@ const music = defineCommand({
         break;
       case 'skip': {
         const next = await manager.skip(guildId);
-        await ctx.reply({ content: next ? `⏭️ Now playing: **${next.track.info.title}**` : '⏭️ Queue finished.' });
+        await ctx.reply({
+          content: next ? `⏭️ Now playing: **${next.track.info.title}**` : '⏭️ Queue finished.',
+        });
         break;
       }
       case 'previous': {
         const prior = await manager.previous(guildId);
-        await ctx.reply({ content: prior ? `⏮️ Playing: **${prior.track.info.title}**` : 'No previous track.' });
+        await ctx.reply({
+          content: prior ? `⏮️ Playing: **${prior.track.info.title}**` : 'No previous track.',
+        });
         break;
       }
       case 'stop':
@@ -155,17 +208,23 @@ const music = defineCommand({
         break;
       case 'queue': {
         const snapshot = player.queue.snapshot();
-        const lines = snapshot.upcoming.slice(0, 10).map((item, index) => `${index + 1}. ${item.track.info.title} - <@${item.requestedBy}>`);
+        const lines = snapshot.upcoming
+          .slice(0, 10)
+          .map((item, index) => `${index + 1}. ${item.track.info.title} - <@${item.requestedBy}>`);
         await ctx.reply({
           embeds: [
             {
               title: `Queue (${snapshot.length} upcoming)`,
               color: 0x5865f2,
               description: [
-                snapshot.current ? `**Now:** ${snapshot.current.track.info.title}` : '_Nothing playing_',
+                snapshot.current
+                  ? `**Now:** ${snapshot.current.track.info.title}`
+                  : '_Nothing playing_',
                 ...lines,
                 `Loop: ${snapshot.loop} | Total: ${formatDuration(snapshot.totalDurationMs)}`,
-              ].join('\n').slice(0, 4000),
+              ]
+                .join('\n')
+                .slice(0, 4000),
             },
           ],
         });
@@ -185,7 +244,13 @@ const music = defineCommand({
               description: `**${current.track.info.title}** by ${current.track.info.author}`,
               fields: [
                 { name: 'Requested by', value: `<@${current.requestedBy}>`, inline: true },
-                { name: 'Length', value: current.track.info.isStream ? 'stream' : formatDuration(current.track.info.length), inline: true },
+                {
+                  name: 'Length',
+                  value: current.track.info.isStream
+                    ? 'stream'
+                    : formatDuration(current.track.info.length),
+                  inline: true,
+                },
                 { name: 'Loop', value: player.queue.getLoop(), inline: true },
               ],
             },
@@ -194,7 +259,10 @@ const music = defineCommand({
         break;
       }
       case 'volume': {
-        const volume = await manager.setVolume(guildId, ctx.interaction.options.getInteger('percent', true));
+        const volume = await manager.setVolume(
+          guildId,
+          ctx.interaction.options.getInteger('percent', true),
+        );
         await ctx.reply({ content: `🔊 Volume set to ${volume}%.` });
         break;
       }
@@ -219,7 +287,11 @@ const music = defineCommand({
       case 'remove': {
         const index = ctx.interaction.options.getInteger('index', true) - 1;
         const removed = manager.remove(guildId, index);
-        await ctx.reply({ content: removed ? `Removed **${removed.track.info.title}**.` : 'No track at that position.' });
+        await ctx.reply({
+          content: removed
+            ? `Removed **${removed.track.info.title}**.`
+            : 'No track at that position.',
+        });
         break;
       }
       case 'clear': {

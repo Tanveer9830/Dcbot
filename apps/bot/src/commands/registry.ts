@@ -91,14 +91,20 @@ export class CommandRegistry {
         errors.push(`"${json.name}": name must match ${COMMAND_NAME_REGEX}`);
       }
       if (json.name.length > DISCORD_LIMITS.MAX_COMMAND_NAME_LENGTH) {
-        errors.push(`"${json.name}": name exceeds ${DISCORD_LIMITS.MAX_COMMAND_NAME_LENGTH} characters.`);
+        errors.push(
+          `"${json.name}": name exceeds ${DISCORD_LIMITS.MAX_COMMAND_NAME_LENGTH} characters.`,
+        );
       }
       if (!json.description || json.description.length > DISCORD_LIMITS.MAX_DESCRIPTION_LENGTH) {
-        errors.push(`"${json.name}": description must be 1-${DISCORD_LIMITS.MAX_DESCRIPTION_LENGTH} characters.`);
+        errors.push(
+          `"${json.name}": description must be 1-${DISCORD_LIMITS.MAX_DESCRIPTION_LENGTH} characters.`,
+        );
       }
       const options = json.options ?? [];
       if (options.length > DISCORD_LIMITS.MAX_OPTIONS_PER_COMMAND) {
-        errors.push(`"${json.name}": ${options.length} options exceeds the limit of ${DISCORD_LIMITS.MAX_OPTIONS_PER_COMMAND}.`);
+        errors.push(
+          `"${json.name}": ${options.length} options exceeds the limit of ${DISCORD_LIMITS.MAX_OPTIONS_PER_COMMAND}.`,
+        );
       }
       const subcommandLike = options.filter((option) => option.type === 1 || option.type === 2);
       if (subcommandLike.length > DISCORD_LIMITS.MAX_SUBCOMMANDS_PER_COMMAND) {
@@ -109,7 +115,9 @@ export class CommandRegistry {
       for (const option of options) {
         const nested = (option.options as Array<Record<string, unknown>> | undefined) ?? [];
         if (nested.length > DISCORD_LIMITS.MAX_SUBCOMMANDS_PER_GROUP) {
-          errors.push(`"${json.name}.${String(option.name)}": ${nested.length} nested options exceeds the limit.`);
+          errors.push(
+            `"${json.name}.${String(option.name)}": ${nested.length} nested options exceeds the limit.`,
+          );
         }
       }
       if (command.ownerOnly && command.staffOnly) {
@@ -143,9 +151,14 @@ export class CommandRegistry {
       return null;
     }
 
-    const missingClient = missingPermissions(params.clientPermissions, command.clientPermissions ?? []);
+    const missingClient = missingPermissions(
+      params.clientPermissions,
+      command.clientPermissions ?? [],
+    );
     if (missingClient.length > 0) {
-      return new AuthorizationError(`The bot is missing permission(s): ${formatPermissions(missingClient)}.`);
+      return new AuthorizationError(
+        `The bot is missing permission(s): ${formatPermissions(missingClient)}.`,
+      );
     }
 
     const missingUser = missingPermissions(params.memberPermissions, command.userPermissions ?? []);
@@ -173,7 +186,11 @@ export class CommandRegistry {
   /** Applies the command cooldown. Returns retryAfterMs when blocked. */
   applyCooldown(command: SlashCommand, userId: string, guildId: string): number {
     const windowMs = command.cooldownMs ?? 3000;
-    const result = this.cooldowns.check(`${commandName(command)}:${guildId}:${userId}`, 1, windowMs);
+    const result = this.cooldowns.check(
+      `${commandName(command)}:${guildId}:${userId}`,
+      1,
+      windowMs,
+    );
     return result.allowed ? 0 : result.retryAfterMs;
   }
 }

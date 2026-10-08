@@ -18,15 +18,19 @@ export interface BotMetrics {
     cpu: { load1: number; cores: number };
   };
   gateway: { status: string; pingMs: number | null; guilds: number; cachedUsers: number };
-  services: Array<{ service: string; status: string; latencyMs?: number | null; detail?: string | null }>;
+  services: Array<{
+    service: string;
+    status: string;
+    latencyMs?: number | null;
+    detail?: string | null;
+  }>;
   commands: { total: number; ownerOnly: number; staffOnly: number } | null;
   logs: { debug: number; info: number; warn: number; error: number };
   security: { last24h: number; criticalLast24h: number } | null;
 }
 
 export type BotMetricsResult =
-  | { available: true; metrics: BotMetrics }
-  | { available: false; reason: string };
+  { available: true; metrics: BotMetrics } | { available: false; reason: string };
 
 function baseUrl(): string | null {
   const config = env();

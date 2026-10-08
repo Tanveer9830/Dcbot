@@ -23,7 +23,8 @@ export default async function OwnerPage(): Promise<JSX.Element> {
         <div className="card">
           <h1>Owner panel</h1>
           <div className="alert alert-error">
-            This area is restricted to the configured bot owners. Your Discord ID is not in BOT_OWNER_IDS.
+            This area is restricted to the configured bot owners. Your Discord ID is not in
+            BOT_OWNER_IDS.
           </div>
           <a className="btn" href="/dashboard">
             Back to dashboard
@@ -60,8 +61,16 @@ export default async function OwnerPage(): Promise<JSX.Element> {
           detail={health.ok ? `${health.latencyMs} ms` : (health.error ?? 'unreachable')}
         />
         <StatCard label="Guilds tracked" value={stats?.guilds ?? 'n/a'} />
-        <StatCard label="Custom commands" value={stats?.commands ?? 'n/a'} detail="enabled, all scopes" />
-        <StatCard label="Security events" value={stats?.securityEvents ?? 'n/a'} detail="all guilds, all time" />
+        <StatCard
+          label="Custom commands"
+          value={stats?.commands ?? 'n/a'}
+          detail="enabled, all scopes"
+        />
+        <StatCard
+          label="Security events"
+          value={stats?.securityEvents ?? 'n/a'}
+          detail="all guilds, all time"
+        />
         <StatCard label="Global commands" value={globalCommands.length} detail="owner managed" />
         <StatCard label="Audit entries" value={recentAudit.length} detail="25 most recent" />
       </div>
@@ -76,7 +85,9 @@ export default async function OwnerPage(): Promise<JSX.Element> {
           />
           <StatCard
             label="Gateway"
-            value={bot.metrics.gateway.pingMs === null ? 'unknown' : `${bot.metrics.gateway.pingMs} ms`}
+            value={
+              bot.metrics.gateway.pingMs === null ? 'unknown' : `${bot.metrics.gateway.pingMs} ms`
+            }
             detail={`websocket ${bot.metrics.gateway.status}`}
           />
           <StatCard
@@ -113,17 +124,20 @@ export default async function OwnerPage(): Promise<JSX.Element> {
               key={service.service}
               label={service.service}
               value={service.status}
-              detail={service.latencyMs !== undefined && service.latencyMs !== null
-                ? `${service.latencyMs} ms${service.detail ? ` - ${service.detail}` : ''}`
-                : (service.detail ?? '')}
+              detail={
+                service.latencyMs !== undefined && service.latencyMs !== null
+                  ? `${service.latencyMs} ms${service.detail ? ` - ${service.detail}` : ''}`
+                  : (service.detail ?? '')
+              }
             />
           ))}
         </div>
       ) : (
         <div className="alert" style={{ borderColor: 'var(--border)', color: 'var(--muted)' }}>
-          Live bot process metrics are unavailable: {bot.reason}. Enable <code>BOT_API_ENABLED=true</code> with a
-          shared <code>BOT_API_TOKEN</code> (and <code>BOT_API_URL</code> when the bot runs on another host) to show
-          uptime, gateway latency, memory and service health here. Values are never estimated.
+          Live bot process metrics are unavailable: {bot.reason}. Enable{' '}
+          <code>BOT_API_ENABLED=true</code> with a shared <code>BOT_API_TOKEN</code> (and{' '}
+          <code>BOT_API_URL</code> when the bot runs on another host) to show uptime, gateway
+          latency, memory and service health here. Values are never estimated.
         </div>
       )}
 
@@ -162,8 +176,8 @@ export default async function OwnerPage(): Promise<JSX.Element> {
       <div className="card" style={{ marginTop: 16 }}>
         <h2>Global custom commands</h2>
         <p className="muted">
-          Create, edit, publish and disable these in Discord with <code>/globalcommand</code>. The repository enforces
-          the owner check on every write, so this page is read-only by design.
+          Create, edit, publish and disable these in Discord with <code>/globalcommand</code>. The
+          repository enforces the owner check on every write, so this page is read-only by design.
         </p>
         {globalCommands.length === 0 ? (
           <div className="empty">None published.</div>

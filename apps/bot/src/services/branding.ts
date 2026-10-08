@@ -48,7 +48,11 @@ export class BrandingService {
   }
 
   /** Only configured bot owners may change branding. */
-  async update(guildId: string, patch: Partial<BrandingConfig>, actorId: string): Promise<BrandingConfig> {
+  async update(
+    guildId: string,
+    patch: Partial<BrandingConfig>,
+    actorId: string,
+  ): Promise<BrandingConfig> {
     this.owners.requireOwner(actorId, 'change branding settings');
     const config = { ...(await this.config(guildId)), ...patch };
     config.minIntervalSeconds = Math.max(5, Math.min(3600, config.minIntervalSeconds));
@@ -56,7 +60,11 @@ export class BrandingService {
     config.exemptUserIds = config.exemptUserIds.slice(0, 200);
     // Safety: mode 'all' is only honoured together with the explicit flag.
     if (config.mode === 'all' && !config.replyToEveryMessage) config.mode = 'channels';
-    await this.repos.guilds.updateSettingsGroup(guildId, 'branding', config as unknown as Record<string, unknown>);
+    await this.repos.guilds.updateSettingsGroup(
+      guildId,
+      'branding',
+      config as unknown as Record<string, unknown>,
+    );
     return config;
   }
 
@@ -84,9 +92,13 @@ export class BrandingService {
     );
     if (!limit.allowed) return null;
 
-    return renderTemplate(config.template, { guild: params.guildId, channel: params.channelId, user: `<@${params.authorId}>` }, {
-      strict: false,
-      maxLength: 1900,
-    });
+    return renderTemplate(
+      config.template,
+      { guild: params.guildId, channel: params.channelId, user: `<@${params.authorId}>` },
+      {
+        strict: false,
+        maxLength: 1900,
+      },
+    );
   }
 }

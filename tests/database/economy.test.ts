@@ -39,7 +39,13 @@ describe('economy repository', () => {
     expect(created.wallet).toBe(500);
     expect(created.bank).toBe(0);
 
-    await economy.adjust({ guildId: guild, userId: ALICE, delta: 25, actorId: ALICE, reason: 'test' });
+    await economy.adjust({
+      guildId: guild,
+      userId: ALICE,
+      delta: 25,
+      actorId: ALICE,
+      reason: 'test',
+    });
     const after = await economy.ensureAccount(guild, ALICE);
     expect(after.wallet).toBe(525); // an existing balance must never be reset
   });
@@ -112,9 +118,21 @@ describe('economy repository', () => {
     await economy.ensureAccount(guild, BOB);
     const key = `test-${Date.now()}`;
 
-    await economy.transfer({ guildId: guild, fromUserId: ALICE, toUserId: BOB, amount: 10, idempotencyKey: key });
+    await economy.transfer({
+      guildId: guild,
+      fromUserId: ALICE,
+      toUserId: BOB,
+      amount: 10,
+      idempotencyKey: key,
+    });
     await expect(
-      economy.transfer({ guildId: guild, fromUserId: ALICE, toUserId: BOB, amount: 10, idempotencyKey: key }),
+      economy.transfer({
+        guildId: guild,
+        fromUserId: ALICE,
+        toUserId: BOB,
+        amount: 10,
+        idempotencyKey: key,
+      }),
     ).rejects.toBeInstanceOf(DuplicateOperationError);
 
     expect((await economy.getAccount(guild, BOB)).wallet).toBe(510); // paid once, not twice
@@ -126,7 +144,12 @@ describe('economy repository', () => {
     const stranger = '900000000000000109';
     await economy.ensureAccount(guild, BOB);
 
-    const result = await economy.transfer({ guildId: guild, fromUserId: BOB, toUserId: stranger, amount: 5 });
+    const result = await economy.transfer({
+      guildId: guild,
+      fromUserId: BOB,
+      toUserId: stranger,
+      amount: 5,
+    });
     expect(result.recipient.userId).toBe(stranger);
     expect(result.recipient.wallet).toBe(505); // 500 starting balance plus the transfer
   });
@@ -135,7 +158,12 @@ describe('economy repository', () => {
     const guild = '900000000000000110';
     const userId = '900000000000000111';
 
-    const first = await economy.claimTimedReward({ guildId: guild, userId, kind: 'daily', amount: 250 });
+    const first = await economy.claimTimedReward({
+      guildId: guild,
+      userId,
+      kind: 'daily',
+      amount: 250,
+    });
     expect(first.amount).toBe(250);
     expect(first.account.wallet).toBe(750); // 500 starting balance plus the reward
 
@@ -152,7 +180,12 @@ describe('economy repository', () => {
 
   it('rejects non-positive reward amounts', async () => {
     await expect(
-      economy.claimTimedReward({ guildId: '900000000000000112', userId: ALICE, kind: 'work', amount: 0 }),
+      economy.claimTimedReward({
+        guildId: '900000000000000112',
+        userId: ALICE,
+        kind: 'work',
+        amount: 0,
+      }),
     ).rejects.toBeInstanceOf(ValidationError);
   });
 
@@ -169,8 +202,12 @@ describe('economy repository', () => {
     expect(withdrawn.wallet).toBe(450);
     expect(withdrawn.bank).toBe(50);
 
-    await expect(economy.withdraw(guild, userId, 10_000)).rejects.toBeInstanceOf(InsufficientFundsError);
-    await expect(economy.deposit(guild, userId, 10_000)).rejects.toBeInstanceOf(InsufficientFundsError);
+    await expect(economy.withdraw(guild, userId, 10_000)).rejects.toBeInstanceOf(
+      InsufficientFundsError,
+    );
+    await expect(economy.deposit(guild, userId, 10_000)).rejects.toBeInstanceOf(
+      InsufficientFundsError,
+    );
 
     const untouched = await economy.getAccount(guild, userId);
     expect(untouched.wallet).toBe(450);
@@ -186,7 +223,13 @@ describe('economy repository', () => {
       economy.adjust({ guildId: guild, userId, delta: -9_999, actorId: ALICE, reason: 'test' }),
     ).rejects.toBeInstanceOf(InsufficientFundsError);
 
-    const granted = await economy.adjust({ guildId: guild, userId, delta: 1_000, actorId: ALICE, reason: 'prize' });
+    const granted = await economy.adjust({
+      guildId: guild,
+      userId,
+      delta: 1_000,
+      actorId: ALICE,
+      reason: 'prize',
+    });
     expect(granted.wallet).toBe(1_500);
     expect(granted.totalEarned).toBeGreaterThanOrEqual(1_000);
 
@@ -194,7 +237,9 @@ describe('economy repository', () => {
       economy.adjust({ guildId: guild, userId, delta: 0, actorId: ALICE, reason: 'noop' }),
     ).rejects.toBeInstanceOf(ValidationError);
 
-    const adjustment = (await economy.ledger(guild, userId, 5)).find((row) => row.kind === 'admin_adjust');
+    const adjustment = (await economy.ledger(guild, userId, 5)).find(
+      (row) => row.kind === 'admin_adjust',
+    );
     expect(adjustment?.memo).toContain(ALICE);
     expect(adjustment?.memo).toContain('prize');
   });
@@ -205,7 +250,13 @@ describe('economy repository', () => {
     const poor = '900000000000000119';
     await economy.ensureAccount(guild, rich);
     await economy.ensureAccount(guild, poor);
-    await economy.adjust({ guildId: guild, userId: rich, delta: 5_000, actorId: rich, reason: 'seed' });
+    await economy.adjust({
+      guildId: guild,
+      userId: rich,
+      delta: 5_000,
+      actorId: rich,
+      reason: 'seed',
+    });
 
     const board = await economy.leaderboard(guild, 10);
     expect(board.map((row) => row.userId)).toEqual([rich, poor]);

@@ -21,7 +21,10 @@ import {
 const NOW = Date.UTC(2025, 0, 1, 12, 0, 0);
 
 function recent(count: number, windowMs: number, now = NOW): number[] {
-  return Array.from({ length: count }, (_, index) => now - Math.floor((index * windowMs) / (count + 1)));
+  return Array.from(
+    { length: count },
+    (_, index) => now - Math.floor((index * windowMs) / (count + 1)),
+  );
 }
 
 describe('security thresholds', () => {
@@ -31,7 +34,11 @@ describe('security thresholds', () => {
   });
 
   it('fires anti-raid at the join threshold and escalates with overshoot', () => {
-    const thresholds: Thresholds = { ...DEFAULT_THRESHOLDS, joinThreshold: 5, joinWindowMs: 10_000 };
+    const thresholds: Thresholds = {
+      ...DEFAULT_THRESHOLDS,
+      joinThreshold: 5,
+      joinWindowMs: 10_000,
+    };
 
     expect(detectRaid(recent(4, 10_000, NOW), thresholds, NOW).triggered).toBe(false);
 
@@ -114,7 +121,8 @@ describe('security thresholds', () => {
 
   it('names the dangerous permissions that were just granted', () => {
     const before = PERMISSION_BIT.SEND_MESSAGES;
-    const after = PERMISSION_BIT.SEND_MESSAGES | PERMISSION_BIT.ADMINISTRATOR | PERMISSION_BIT.MANAGE_WEBHOOKS;
+    const after =
+      PERMISSION_BIT.SEND_MESSAGES | PERMISSION_BIT.ADMINISTRATOR | PERMISSION_BIT.MANAGE_WEBHOOKS;
     const change = detectDangerousPermissionChange(before, after);
     expect(change.triggered).toBe(true);
     expect(change.granted).toContain('Administrator');

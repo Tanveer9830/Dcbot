@@ -22,15 +22,31 @@ async function main(): Promise<number> {
   const payload = registry.toJSON();
 
   console.log(`files loaded  : ${loaded.files.length}`);
-  console.log(`files skipped : ${loaded.skipped.length}${loaded.skipped.length ? ` (${loaded.skipped.join(', ')})` : ''}`);
+  console.log(
+    `files skipped : ${loaded.skipped.length}${loaded.skipped.length ? ` (${loaded.skipped.join(', ')})` : ''}`,
+  );
   console.log(`commands      : ${registry.size}`);
-  console.log(`owner-only    : ${loaded.commands.filter((command) => command.ownerOnly).map(commandName).join(', ') || 'none'}`);
+  console.log(
+    `owner-only    : ${
+      loaded.commands
+        .filter((command) => command.ownerOnly)
+        .map(commandName)
+        .join(', ') || 'none'
+    }`,
+  );
   console.log(`staff-only    : ${loaded.commands.filter((command) => command.staffOnly).length}`);
   console.log(`limit errors  : ${validation.errors.length}`);
   for (const error of validation.errors) console.log(`  - ${error}`);
   for (const warning of validation.warnings) console.log(`  ! ${warning}`);
-  console.log(`payload shape : ${payload.every((entry) => typeof entry.name === 'string' && typeof entry.description === 'string')}`);
-  console.log(`names         : ${payload.map((entry) => String(entry.name)).sort().join(', ')}`);
+  console.log(
+    `payload shape : ${payload.every((entry) => typeof entry.name === 'string' && typeof entry.description === 'string')}`,
+  );
+  console.log(
+    `names         : ${payload
+      .map((entry) => String(entry.name))
+      .sort()
+      .join(', ')}`,
+  );
 
   const failed = loaded.skipped.length > 0 || !validation.valid || payload.length !== registry.size;
   console.log(failed ? 'RESULT: FAIL' : 'RESULT: PASS');

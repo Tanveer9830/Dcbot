@@ -33,9 +33,13 @@ export function infoEmbed(message: string): EmbedBuilder {
  * Commands that need persistence call this first. Without a database the bot
  * still runs, but persistent features refuse cleanly instead of throwing.
  */
-export function requireDatabase(ctx: CommandExecutionContext): NonNullable<typeof ctx.context.repos> {
+export function requireDatabase(
+  ctx: CommandExecutionContext,
+): NonNullable<typeof ctx.context.repos> {
   if (!ctx.context.repos) {
-    throw new ValidationError('This feature needs the database, which is not configured on this instance.');
+    throw new ValidationError(
+      'This feature needs the database, which is not configured on this instance.',
+    );
   }
   return ctx.context.repos;
 }

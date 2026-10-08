@@ -1,4 +1,11 @@
-import { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, type Guild, type TextChannel } from 'discord.js';
+import {
+  ActionRowBuilder,
+  ButtonBuilder,
+  ButtonStyle,
+  EmbedBuilder,
+  type Guild,
+  type TextChannel,
+} from 'discord.js';
 import type { Repositories } from '../database/repositories.js';
 import { ValidationError } from '@dcbot/shared';
 import { discordTimestamp } from '../utils/format.js';
@@ -22,7 +29,8 @@ export class GiveawayService {
     if (params.winnerCount < 1 || params.winnerCount > 25) {
       throw new ValidationError('Winner count must be between 1 and 25.');
     }
-    if (params.durationMs < 60_000) throw new ValidationError('Duration must be at least 1 minute.');
+    if (params.durationMs < 60_000)
+      throw new ValidationError('Duration must be at least 1 minute.');
 
     const endsAt = new Date(Date.now() + params.durationMs);
     const embed = new EmbedBuilder()
@@ -37,7 +45,11 @@ export class GiveawayService {
       .setColor(0xf1c40f)
       .setTimestamp(endsAt);
     const row = new ActionRowBuilder<ButtonBuilder>().addComponents(
-      new ButtonBuilder().setCustomId('giveaway_enter').setLabel('Enter').setEmoji('🎉').setStyle(ButtonStyle.Primary),
+      new ButtonBuilder()
+        .setCustomId('giveaway_enter')
+        .setLabel('Enter')
+        .setEmoji('🎉')
+        .setStyle(ButtonStyle.Primary),
     );
     const message = await params.channel.send({ embeds: [embed], components: [row] });
     await this.repos.community.createGiveaway({
@@ -52,7 +64,11 @@ export class GiveawayService {
     return { messageId: message.id, endsAt };
   }
 
-  async enter(guildId: string, messageId: string, userId: string): Promise<{ entered: boolean; total: number }> {
+  async enter(
+    guildId: string,
+    messageId: string,
+    userId: string,
+  ): Promise<{ entered: boolean; total: number }> {
     const active = await this.repos.community.activeGiveaways(guildId);
     const giveaway = active.find((entry) => entry.messageId === messageId);
     if (!giveaway) throw new ValidationError('That giveaway is not active.');
@@ -80,14 +96,19 @@ export class GiveawayService {
       winners.length > 0
         ? `**Prize:** ${giveaway.prize}\n**Winner(s):** ${winners.map((id) => `<@${id}>`).join(', ')}`
         : `**Prize:** ${giveaway.prize}\nNo valid entries.`;
-    const embed = new EmbedBuilder().setTitle('🎉 Giveaway ended').setDescription(description).setColor(0x57f287);
+    const embed = new EmbedBuilder()
+      .setTitle('🎉 Giveaway ended')
+      .setDescription(description)
+      .setColor(0x57f287);
     if (channel) {
-      await channel.send({ content: winners.map((id) => `<@${id}>`).join(' ') || undefined, embeds: [embed] }).catch((error) => {
-        this.logger.warn('giveaway: announcement failed', {
-          guildId: guild.id,
-          error: error instanceof Error ? error.message : String(error),
+      await channel
+        .send({ content: winners.map((id) => `<@${id}>`).join(' ') || undefined, embeds: [embed] })
+        .catch((error) => {
+          this.logger.warn('giveaway: announcement failed', {
+            guildId: guild.id,
+            error: error instanceof Error ? error.message : String(error),
+          });
         });
-      });
     }
     return winners.length > 0 ? `Winner(s): ${winners.join(', ')}` : 'No entries.';
   }

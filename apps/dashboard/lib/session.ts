@@ -43,7 +43,10 @@ function encryptionKey(): Uint8Array {
 const MAX_AGE_SECONDS = 60 * 60 * 12;
 
 export async function signSession(payload: SessionPayload): Promise<string> {
-  const lifetime = Math.max(60, Math.min(MAX_AGE_SECONDS, Math.floor((payload.tokenExpiresAt - Date.now()) / 1000)));
+  const lifetime = Math.max(
+    60,
+    Math.min(MAX_AGE_SECONDS, Math.floor((payload.tokenExpiresAt - Date.now()) / 1000)),
+  );
   return new EncryptJWT({ ...payload })
     .setProtectedHeader({ alg: 'dir', enc: 'A256GCM' })
     .setIssuedAt()

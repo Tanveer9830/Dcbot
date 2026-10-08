@@ -103,7 +103,10 @@ describe('migrations', () => {
     await migrate(db, MIGRATIONS_DIR);
 
     await expect(
-      db.query('INSERT INTO economy_accounts (guild_id, user_id, wallet) VALUES ($1, $2, -1)', ['1', '1']),
+      db.query('INSERT INTO economy_accounts (guild_id, user_id, wallet) VALUES ($1, $2, -1)', [
+        '1',
+        '1',
+      ]),
     ).rejects.toThrow();
   });
 

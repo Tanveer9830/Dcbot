@@ -27,7 +27,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }):
         <main>{children}</main>
         <footer className="footer">
           <div className="container">
-            Dcbot - self-hosted Discord bot and dashboard. Data is stored in your own PostgreSQL database.
+            Dcbot - self-hosted Discord bot and dashboard. Data is stored in your own PostgreSQL
+            database.
           </div>
         </footer>
       </body>

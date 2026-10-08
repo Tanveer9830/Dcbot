@@ -5,7 +5,7 @@ import { PERMISSION_BIT } from '@dcbot/shared';
 const config = defineCommand({
   data: new SlashCommandBuilder()
     .setName('config')
-    .setDescription('Views and edits this server\'s configuration.')
+    .setDescription("Views and edits this server's configuration.")
     .addSubcommand((sub) => sub.setName('view').setDescription('Shows the current configuration.'))
     .addSubcommand((sub) =>
       sub
@@ -17,17 +17,21 @@ const config = defineCommand({
         .setName('reset')
         .setDescription('Resets one configuration group to defaults.')
         .addStringOption((option) =>
-          option.setName('group').setDescription('Group').addChoices(
-            { name: 'moderation', value: 'moderation' },
-            { name: 'automod', value: 'automod' },
-            { name: 'security', value: 'security' },
-            { name: 'tickets', value: 'tickets' },
-            { name: 'welcome', value: 'welcome' },
-            { name: 'logging', value: 'logging' },
-            { name: 'economy', value: 'economy' },
-            { name: 'leveling', value: 'leveling' },
-            { name: 'music', value: 'music' },
-          ).setRequired(true),
+          option
+            .setName('group')
+            .setDescription('Group')
+            .addChoices(
+              { name: 'moderation', value: 'moderation' },
+              { name: 'automod', value: 'automod' },
+              { name: 'security', value: 'security' },
+              { name: 'tickets', value: 'tickets' },
+              { name: 'welcome', value: 'welcome' },
+              { name: 'logging', value: 'logging' },
+              { name: 'economy', value: 'economy' },
+              { name: 'leveling', value: 'leveling' },
+              { name: 'music', value: 'music' },
+            )
+            .setRequired(true),
         ),
     ),
   description: "Views and edits this server's configuration.",
@@ -49,7 +53,16 @@ const config = defineCommand({
           sub === 'export'
             ? `\`\`\`json\n${JSON.stringify(settings, null, 2).slice(0, 1800)}\n\`\`\``
             : undefined,
-        embeds: sub === 'view' ? [{ title: 'Server configuration', description: summary.slice(0, 4000), color: 0x5865f2 }] : [],
+        embeds:
+          sub === 'view'
+            ? [
+                {
+                  title: 'Server configuration',
+                  description: summary.slice(0, 4000),
+                  color: 0x5865f2,
+                },
+              ]
+            : [],
         ephemeral: true,
       });
       return;
@@ -79,42 +92,58 @@ const logs = defineCommand({
         .setName('channel')
         .setDescription('Sets the channel for a log type.')
         .addStringOption((option) =>
-          option.setName('type').setDescription('Log type').addChoices(
-            { name: 'moderation', value: 'moderation' },
-            { name: 'security', value: 'security' },
-            { name: 'messages', value: 'messages' },
-            { name: 'members', value: 'members' },
-            { name: 'tickets', value: 'tickets' },
-            { name: 'economy', value: 'economy' },
-            { name: 'errors', value: 'errors' },
-          ).setRequired(true),
+          option
+            .setName('type')
+            .setDescription('Log type')
+            .addChoices(
+              { name: 'moderation', value: 'moderation' },
+              { name: 'security', value: 'security' },
+              { name: 'messages', value: 'messages' },
+              { name: 'members', value: 'members' },
+              { name: 'tickets', value: 'tickets' },
+              { name: 'economy', value: 'economy' },
+              { name: 'errors', value: 'errors' },
+            )
+            .setRequired(true),
         )
-        .addChannelOption((option) => option.setName('channel').setDescription('Channel').setRequired(true)),
+        .addChannelOption((option) =>
+          option.setName('channel').setDescription('Channel').setRequired(true),
+        ),
     )
     .addSubcommand((sub) =>
       sub
         .setName('event')
         .setDescription('Enables or disables a logged event.')
         .addStringOption((option) =>
-          option.setName('event').setDescription('Event').addChoices(
-            { name: 'message delete', value: 'message_delete' },
-            { name: 'message edit', value: 'message_edit' },
-            { name: 'member join', value: 'member_join' },
-            { name: 'member leave', value: 'member_leave' },
-            { name: 'role change', value: 'role_change' },
-            { name: 'moderation', value: 'moderation' },
-            { name: 'security', value: 'security' },
-          ).setRequired(true),
+          option
+            .setName('event')
+            .setDescription('Event')
+            .addChoices(
+              { name: 'message delete', value: 'message_delete' },
+              { name: 'message edit', value: 'message_edit' },
+              { name: 'member join', value: 'member_join' },
+              { name: 'member leave', value: 'member_leave' },
+              { name: 'role change', value: 'role_change' },
+              { name: 'moderation', value: 'moderation' },
+              { name: 'security', value: 'security' },
+            )
+            .setRequired(true),
         )
-        .addBooleanOption((option) => option.setName('enabled').setDescription('Enabled').setRequired(true)),
+        .addBooleanOption((option) =>
+          option.setName('enabled').setDescription('Enabled').setRequired(true),
+        ),
     )
     .addSubcommand((sub) =>
       sub
         .setName('enable')
         .setDescription('Turns logging on or off.')
-        .addBooleanOption((option) => option.setName('enabled').setDescription('Enabled').setRequired(true)),
+        .addBooleanOption((option) =>
+          option.setName('enabled').setDescription('Enabled').setRequired(true),
+        ),
     )
-    .addSubcommand((sub) => sub.setName('status').setDescription('Shows the logging configuration.')),
+    .addSubcommand((sub) =>
+      sub.setName('status').setDescription('Shows the logging configuration.'),
+    ),
   description: 'Configures logging.',
   staffOnly: true,
   userPermissions: [PERMISSION_BIT.MANAGE_GUILD],
@@ -123,7 +152,8 @@ const logs = defineCommand({
     const sub = ctx.interaction.options.getSubcommand();
 
     if (sub === 'channel') {
-      const type = ctx.interaction.options.getString('type', true) as 'moderation' | 'security' | 'messages' | 'members' | 'tickets' | 'economy' | 'errors';
+      const type = ctx.interaction.options.getString('type', true) as
+        'moderation' | 'security' | 'messages' | 'members' | 'tickets' | 'economy' | 'errors';
       const channel = ctx.interaction.options.getChannel('channel', true);
       await service.setChannel(ctx.guild.id, type, channel.id);
       await ctx.reply({ embeds: [successEmbed(`${type} logs will go to <#${channel.id}>.`)] });
@@ -134,7 +164,9 @@ const logs = defineCommand({
       const event = ctx.interaction.options.getString('event', true);
       const enabled = ctx.interaction.options.getBoolean('enabled', true);
       await service.setEvent(ctx.guild.id, event, enabled);
-      await ctx.reply({ embeds: [successEmbed(`\`${event}\` logging ${enabled ? 'enabled' : 'disabled'}.`)] });
+      await ctx.reply({
+        embeds: [successEmbed(`\`${event}\` logging ${enabled ? 'enabled' : 'disabled'}.`)],
+      });
       return;
     }
 
@@ -162,7 +194,10 @@ const logs = defineCommand({
             },
             {
               name: 'Events',
-              value: Object.entries(config.events).map(([key, enabled]) => `${enabled ? '✅' : '⛔'} ${key}`).join('\n').slice(0, 1000),
+              value: Object.entries(config.events)
+                .map(([key, enabled]) => `${enabled ? '✅' : '⛔'} ${key}`)
+                .join('\n')
+                .slice(0, 1000),
             },
           ],
         },
@@ -180,23 +215,34 @@ const welcome = defineCommand({
       sub
         .setName('channel')
         .setDescription('Sets the welcome channel.')
-        .addChannelOption((option) => option.setName('channel').setDescription('Channel').setRequired(true)),
+        .addChannelOption((option) =>
+          option.setName('channel').setDescription('Channel').setRequired(true),
+        ),
     )
     .addSubcommand((sub) =>
       sub
         .setName('message')
         .setDescription('Sets the welcome message template.')
-        .addStringOption((option) => option.setName('text').setDescription('Supports {{user}}, {{guild}}, {{member_count}}').setRequired(true)),
+        .addStringOption((option) =>
+          option
+            .setName('text')
+            .setDescription('Supports {{user}}, {{guild}}, {{member_count}}')
+            .setRequired(true),
+        ),
     )
     .addSubcommand((sub) =>
       sub
         .setName('autorole')
         .setDescription('Adds or removes an auto-assigned role.')
         .addRoleOption((option) => option.setName('role').setDescription('Role').setRequired(true))
-        .addBooleanOption((option) => option.setName('remove').setDescription('Remove instead of add')),
+        .addBooleanOption((option) =>
+          option.setName('remove').setDescription('Remove instead of add'),
+        ),
     )
     .addSubcommand((sub) => sub.setName('test').setDescription('Sends a test welcome message.'))
-    .addSubcommand((sub) => sub.setName('status').setDescription('Shows the welcome configuration.')),
+    .addSubcommand((sub) =>
+      sub.setName('status').setDescription('Shows the welcome configuration.'),
+    ),
   description: 'Configures welcome behaviour.',
   staffOnly: true,
   userPermissions: [PERMISSION_BIT.MANAGE_GUILD],
@@ -222,9 +268,15 @@ const welcome = defineCommand({
     if (sub === 'autorole') {
       const role = ctx.interaction.options.getRole('role', true);
       const remove = ctx.interaction.options.getBoolean('remove') ?? false;
-      const roles = remove ? config.autoRoleIds.filter((id) => id !== role.id) : [...new Set([...config.autoRoleIds, role.id])];
+      const roles = remove
+        ? config.autoRoleIds.filter((id) => id !== role.id)
+        : [...new Set([...config.autoRoleIds, role.id])];
       await service.update(ctx.guild.id, { autoRoleIds: roles });
-      await ctx.reply({ embeds: [successEmbed(`Auto-roles: ${roles.map((id) => `<@&${id}>`).join(', ') || 'none'}`)] });
+      await ctx.reply({
+        embeds: [
+          successEmbed(`Auto-roles: ${roles.map((id) => `<@&${id}>`).join(', ') || 'none'}`),
+        ],
+      });
       return;
     }
 
@@ -240,7 +292,11 @@ const welcome = defineCommand({
           color: 0x5865f2,
           fields: [
             { name: 'Enabled', value: String(config.enabled), inline: true },
-            { name: 'Channel', value: config.channelId ? `<#${config.channelId}>` : 'unset', inline: true },
+            {
+              name: 'Channel',
+              value: config.channelId ? `<#${config.channelId}>` : 'unset',
+              inline: true,
+            },
             { name: 'Auto-roles', value: String(config.autoRoleIds.length), inline: true },
             { name: 'Leave messages', value: String(config.leaveEnabled), inline: true },
             { name: 'Message', value: config.message.slice(0, 200) },
@@ -266,7 +322,9 @@ const verify = defineCommand({
       sub
         .setName('panel')
         .setDescription('Posts the verification panel.')
-        .addChannelOption((option) => option.setName('channel').setDescription('Channel').setRequired(true)),
+        .addChannelOption((option) =>
+          option.setName('channel').setDescription('Channel').setRequired(true),
+        ),
     )
     .addSubcommand((sub) => sub.setName('me').setDescription('Verifies yourself.')),
   description: 'Configures the verification role.',
@@ -278,7 +336,10 @@ const verify = defineCommand({
       if (!ctx.member.permissions.has('ManageGuild')) throw new ValidationError('Staff only.');
       const role = ctx.interaction.options.getRole('role', true);
       await service.update(ctx.guild.id, { verificationRoleId: role.id });
-      await ctx.reply({ embeds: [successEmbed(`Verification role set to ${role}.`)], ephemeral: true });
+      await ctx.reply({
+        embeds: [successEmbed(`Verification role set to ${role}.`)],
+        ephemeral: true,
+      });
       return;
     }
 

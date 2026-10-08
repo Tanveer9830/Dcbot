@@ -26,7 +26,9 @@ async function main(): Promise<void> {
     if (statusOnly) {
       const status = await migrationStatus(db, env.MIGRATIONS_DIR);
       for (const entry of status) {
-        console.log(`${entry.applied ? 'x' : ' '} ${entry.name}${entry.appliedAt ? ` (${entry.appliedAt})` : ''}`);
+        console.log(
+          `${entry.applied ? 'x' : ' '} ${entry.name}${entry.appliedAt ? ` (${entry.appliedAt})` : ''}`,
+        );
       }
       return;
     }

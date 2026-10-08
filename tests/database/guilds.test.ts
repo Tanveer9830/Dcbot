@@ -24,19 +24,28 @@ describe('guild settings', () => {
 
   // JSONB concatenation (`a || b`) is not implemented by pg-mem, so the merge is
   // only exercised against real PostgreSQL. It runs in CI's Postgres service.
-  it.runIf(USES_REAL_POSTGRES)('merges a patch into a single group without touching the others', async () => {
-    const guildId = '910000000000000001';
-    await db.query('INSERT INTO guilds (guild_id, name) VALUES ($1, $2)', [guildId, 'Settings Guild']);
+  it.runIf(USES_REAL_POSTGRES)(
+    'merges a patch into a single group without touching the others',
+    async () => {
+      const guildId = '910000000000000001';
+      await db.query('INSERT INTO guilds (guild_id, name) VALUES ($1, $2)', [
+        guildId,
+        'Settings Guild',
+      ]);
 
-    await guilds.updateSettingsGroup(guildId, 'moderation', { logChannelId: '111', maxMentions: 5 });
-    await guilds.updateSettingsGroup(guildId, 'moderation', { maxMentions: 8 });
-    await guilds.updateSettingsGroup(guildId, 'welcome', { enabled: true });
+      await guilds.updateSettingsGroup(guildId, 'moderation', {
+        logChannelId: '111',
+        maxMentions: 5,
+      });
+      await guilds.updateSettingsGroup(guildId, 'moderation', { maxMentions: 8 });
+      await guilds.updateSettingsGroup(guildId, 'welcome', { enabled: true });
 
-    const settings = await guilds.getSettings(guildId);
-    expect(settings.moderation).toMatchObject({ logChannelId: '111', maxMentions: 8 });
-    expect(settings.welcome).toMatchObject({ enabled: true });
-    expect(settings.security).toEqual({});
-  });
+      const settings = await guilds.getSettings(guildId);
+      expect(settings.moderation).toMatchObject({ logChannelId: '111', maxMentions: 8 });
+      expect(settings.welcome).toMatchObject({ enabled: true });
+      expect(settings.security).toEqual({});
+    },
+  );
 
   it('refuses an unknown group instead of interpolating it into SQL', async () => {
     await expect(

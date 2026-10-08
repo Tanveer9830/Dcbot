@@ -25,7 +25,12 @@ export function paginate<T>(items: readonly T[], perPage: number): T[][] {
   return pages.length > 0 ? pages : [[]];
 }
 
-export function buildPageEmbed(page: Page, index: number, total: number, color = 0x5865f2): EmbedBuilder {
+export function buildPageEmbed(
+  page: Page,
+  index: number,
+  total: number,
+  color = 0x5865f2,
+): EmbedBuilder {
   const embed = new EmbedBuilder().setTitle(page.title).setColor(color);
   const body = page.lines.length > 0 ? page.lines.join('\n') : '_Nothing to show yet._';
   embed.setDescription(body.length > 4000 ? `${body.slice(0, 3997)}…` : body);
@@ -79,11 +84,12 @@ export async function sendPaginated(
   }
   if (total <= 1) return message;
 
-  const collector: InteractionCollector<ButtonInteraction> = message.createMessageComponentCollector({
-    componentType: ComponentType.Button,
-    time: timeoutMs,
-    filter: (component) => component.user.id === interaction.user.id,
-  });
+  const collector: InteractionCollector<ButtonInteraction> =
+    message.createMessageComponentCollector({
+      componentType: ComponentType.Button,
+      time: timeoutMs,
+      filter: (component) => component.user.id === interaction.user.id,
+    });
 
   collector.on('collect', async (component) => {
     if (component.customId === 'page_prev') index = Math.max(0, index - 1);
@@ -94,11 +100,9 @@ export async function sendPaginated(
     });
   });
   collector.on('end', () => {
-    message
-      .edit({ components: [] })
-      .catch(() => {
-        /* message may be gone */
-      });
+    message.edit({ components: [] }).catch(() => {
+      /* message may be gone */
+    });
   });
   return message;
 }

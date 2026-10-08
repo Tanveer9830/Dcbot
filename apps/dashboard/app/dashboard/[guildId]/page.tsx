@@ -27,7 +27,8 @@ export default async function GuildOverviewPage({
   if (!overview) {
     return (
       <div className="empty">
-        This bot has not recorded any data for this server yet. Invite the bot, then interact with it once.
+        This bot has not recorded any data for this server yet. Invite the bot, then interact with
+        it once.
       </div>
     );
   }

@@ -3,26 +3,52 @@ import { SettingsForm } from '../../../../components/SettingsForm';
 
 export const dynamic = 'force-dynamic';
 
-export default async function AutoModPage({ params }: { params: { guildId: string } }): Promise<JSX.Element> {
+export default async function AutoModPage({
+  params,
+}: {
+  params: { guildId: string };
+}): Promise<JSX.Element> {
   const context = await loadGuildPage(params.guildId);
   const config = (context.settings.automod ?? {}) as Record<string, unknown>;
-  const read = <T,>(key: string, fallback: T): T => (config[key] === undefined ? fallback : (config[key] as T));
+  const read = <T,>(key: string, fallback: T): T =>
+    config[key] === undefined ? fallback : (config[key] as T);
 
   return (
     <div>
       <h2>AutoMod</h2>
       <p className="muted">
-        Discord delivers a message before the bot can see it, so &quot;blocking&quot; means deleting the message
-        immediately and acting on the author. It cannot unsend what already reached clients.
+        Discord delivers a message before the bot can see it, so &quot;blocking&quot; means deleting
+        the message immediately and acting on the author. It cannot unsend what already reached
+        clients.
       </p>
       <SettingsForm
         guildId={context.guildId}
         group="automod"
         fields={[
-          { key: 'enabled', label: 'AutoMod enabled', type: 'boolean', value: read('enabled', false) },
-          { key: 'blockInvites', label: 'Block invite links', type: 'boolean', value: read('blockInvites', true) },
-          { key: 'blockLinks', label: 'Block suspicious links', type: 'boolean', value: read('blockLinks', false) },
-          { key: 'blockMentions', label: 'Block mass mentions', type: 'boolean', value: read('blockMentions', false) },
+          {
+            key: 'enabled',
+            label: 'AutoMod enabled',
+            type: 'boolean',
+            value: read('enabled', false),
+          },
+          {
+            key: 'blockInvites',
+            label: 'Block invite links',
+            type: 'boolean',
+            value: read('blockInvites', true),
+          },
+          {
+            key: 'blockLinks',
+            label: 'Block suspicious links',
+            type: 'boolean',
+            value: read('blockLinks', false),
+          },
+          {
+            key: 'blockMentions',
+            label: 'Block mass mentions',
+            type: 'boolean',
+            value: read('blockMentions', false),
+          },
           {
             key: 'mentionThreshold',
             label: 'Mention threshold',
@@ -31,7 +57,12 @@ export default async function AutoModPage({ params }: { params: { guildId: strin
             min: 1,
             max: 100,
           },
-          { key: 'blockCaps', label: 'Block excessive caps', type: 'boolean', value: read('blockCaps', false) },
+          {
+            key: 'blockCaps',
+            label: 'Block excessive caps',
+            type: 'boolean',
+            value: read('blockCaps', false),
+          },
           {
             key: 'capsRatio',
             label: 'Caps ratio (0.1-1)',
@@ -40,7 +71,12 @@ export default async function AutoModPage({ params }: { params: { guildId: strin
             min: 0.1,
             max: 1,
           },
-          { key: 'blockRepeated', label: 'Block repeated messages', type: 'boolean', value: read('blockRepeated', false) },
+          {
+            key: 'blockRepeated',
+            label: 'Block repeated messages',
+            type: 'boolean',
+            value: read('blockRepeated', false),
+          },
           {
             key: 'blockedWords',
             label: 'Blocked words',

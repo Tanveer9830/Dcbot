@@ -96,7 +96,10 @@ export class LavalinkClient {
         this.connected = true;
         this.reconnectAttempts = 0;
         this.emit({ type: 'ready' });
-        this.logger.info('lavalink: node connected', { host: this.options.host, port: this.options.port });
+        this.logger.info('lavalink: node connected', {
+          host: this.options.host,
+          port: this.options.port,
+        });
       });
 
       socket.addEventListener('message', (event) => {
@@ -133,7 +136,9 @@ export class LavalinkClient {
     const guildId = data.guildId as string | undefined;
     switch (op) {
       case 'ready':
-        this.logger.info('lavalink: session ready', { sessionId: String(data.sessionId ?? '').slice(0, 8) });
+        this.logger.info('lavalink: session ready', {
+          sessionId: String(data.sessionId ?? '').slice(0, 8),
+        });
         break;
       case 'stats':
         this.lastStats = data;
@@ -187,7 +192,9 @@ export class LavalinkClient {
     });
     if (!response.ok) {
       const body = await response.text().catch(() => '');
-      throw new Error(`Lavalink ${init.method ?? 'GET'} ${path} failed: ${response.status} ${body.slice(0, 200)}`);
+      throw new Error(
+        `Lavalink ${init.method ?? 'GET'} ${path} failed: ${response.status} ${body.slice(0, 200)}`,
+      );
     }
     if (response.status === 204) return undefined as T;
     return (await response.json()) as T;
@@ -195,7 +202,9 @@ export class LavalinkClient {
 
   /** Resolves a query, URL or search string into tracks. */
   async loadTracks(identifier: string): Promise<LoadTracksResult> {
-    return this.request<LoadTracksResult>(`/v4/loadtracks?identifier=${encodeURIComponent(identifier)}`);
+    return this.request<LoadTracksResult>(
+      `/v4/loadtracks?identifier=${encodeURIComponent(identifier)}`,
+    );
   }
 
   async getPlayer(guildId: string): Promise<LavalinkPlayer | null> {
@@ -223,10 +232,13 @@ export class LavalinkClient {
     if (params.volume !== undefined) body.volume = params.volume;
     if (params.voice) body.voice = params.voice;
 
-    return this.request<LavalinkPlayer>(`/v4/sessions/default/players/${params.guildId}?noReplace=false`, {
-      method: 'PATCH',
-      body: JSON.stringify(body),
-    });
+    return this.request<LavalinkPlayer>(
+      `/v4/sessions/default/players/${params.guildId}?noReplace=false`,
+      {
+        method: 'PATCH',
+        body: JSON.stringify(body),
+      },
+    );
   }
 
   async destroyPlayer(guildId: string): Promise<void> {

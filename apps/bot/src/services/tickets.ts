@@ -54,7 +54,11 @@ export class TicketService {
   async update(guildId: string, patch: Partial<TicketConfig>): Promise<TicketConfig> {
     const config = { ...(await this.config(guildId)), ...patch };
     config.maxOpenPerUser = Math.max(1, Math.min(10, config.maxOpenPerUser));
-    await this.repos.guilds.updateSettingsGroup(guildId, 'tickets', config as unknown as Record<string, unknown>);
+    await this.repos.guilds.updateSettingsGroup(
+      guildId,
+      'tickets',
+      config as unknown as Record<string, unknown>,
+    );
     return config;
   }
 
@@ -94,7 +98,14 @@ export class TicketService {
 
     const permissions = [
       { id: params.guild.roles.everyone.id, deny: [PermissionFlagsBits.ViewChannel] },
-      { id: params.openerId, allow: [PermissionFlagsBits.ViewChannel, PermissionFlagsBits.SendMessages, PermissionFlagsBits.ReadMessageHistory] },
+      {
+        id: params.openerId,
+        allow: [
+          PermissionFlagsBits.ViewChannel,
+          PermissionFlagsBits.SendMessages,
+          PermissionFlagsBits.ReadMessageHistory,
+        ],
+      },
       {
         id: params.guild.members.me!.id,
         allow: [
@@ -106,7 +117,11 @@ export class TicketService {
       },
       ...config.staffRoleIds.map((roleId) => ({
         id: roleId,
-        allow: [PermissionFlagsBits.ViewChannel, PermissionFlagsBits.SendMessages, PermissionFlagsBits.ReadMessageHistory],
+        allow: [
+          PermissionFlagsBits.ViewChannel,
+          PermissionFlagsBits.SendMessages,
+          PermissionFlagsBits.ReadMessageHistory,
+        ],
       })),
     ];
 
@@ -136,11 +151,21 @@ export class TicketService {
       )
       .setColor(0x57f287);
     const row = new ActionRowBuilder<ButtonBuilder>().addComponents(
-      new ButtonBuilder().setCustomId('ticket_claim').setLabel('Claim').setStyle(ButtonStyle.Secondary),
-      new ButtonBuilder().setCustomId('ticket_close').setLabel('Close').setStyle(ButtonStyle.Danger),
+      new ButtonBuilder()
+        .setCustomId('ticket_claim')
+        .setLabel('Claim')
+        .setStyle(ButtonStyle.Secondary),
+      new ButtonBuilder()
+        .setCustomId('ticket_close')
+        .setLabel('Close')
+        .setStyle(ButtonStyle.Danger),
     );
     await channel.send({ content: `<@${params.openerId}>`, embeds: [embed], components: [row] });
-    await this.logTicket(params.guild, config, `Ticket opened by <@${params.openerId}> in <#${channel.id}>`);
+    await this.logTicket(
+      params.guild,
+      config,
+      `Ticket opened by <@${params.openerId}> in <#${channel.id}>`,
+    );
     return { channelId: channel.id, created: true, message: `Ticket created: <#${channel.id}>` };
   }
 
@@ -169,7 +194,9 @@ export class TicketService {
     const channel = params.guild.channels.cache.get(params.channelId) as TextChannel | undefined;
     if (channel) {
       await channel
-        .send({ content: `Ticket closed by <@${params.closedById}>. This channel will be deleted shortly.` })
+        .send({
+          content: `Ticket closed by <@${params.closedById}>. This channel will be deleted shortly.`,
+        })
         .catch(() => undefined);
       if (params.deleteChannel !== false) {
         await channel.delete('Ticket closed').catch(() => undefined);
@@ -198,7 +225,14 @@ export class TicketService {
    * Builds a transcript. Access is enforced BEFORE the content is read: the
    * caller must be the opener, the claiming staff member, or a bot owner.
    */
-  async transcript(guildId: string, channelId: string, requesterId: string, isOwner: boolean, staffRoleIds: readonly string[], roleIds: readonly string[]): Promise<string> {
+  async transcript(
+    guildId: string,
+    channelId: string,
+    requesterId: string,
+    isOwner: boolean,
+    staffRoleIds: readonly string[],
+    roleIds: readonly string[],
+  ): Promise<string> {
     const ticket = await this.repos.tickets.getByChannel(guildId, channelId);
     if (!ticket) throw new ValidationError('No ticket exists for this channel.');
     const isOpener = ticket.openerId === requesterId;
@@ -210,7 +244,10 @@ export class TicketService {
     const rows = await this.repos.tickets.transcript(ticket.id);
     if (rows.length === 0) return '_This ticket has no recorded messages._';
     return rows
-      .map((row) => `[${row.createdAt.toISOString()}] <@${row.authorId}>: ${row.content || '(no text content)'}`)
+      .map(
+        (row) =>
+          `[${row.createdAt.toISOString()}] <@${row.authorId}>: ${row.content || '(no text content)'}`,
+      )
       .join('\n');
   }
 
@@ -244,6 +281,10 @@ export class TicketService {
     if (!config.logChannelId) return;
     const channel = guild.channels.cache.get(config.logChannelId) as TextChannel | undefined;
     if (!channel) return;
-    await channel.send({ embeds: [new EmbedBuilder().setDescription(message).setColor(0x5865f2).setTimestamp()] }).catch(() => undefined);
+    await channel
+      .send({
+        embeds: [new EmbedBuilder().setDescription(message).setColor(0x5865f2).setTimestamp()],
+      })
+      .catch(() => undefined);
   }
 }

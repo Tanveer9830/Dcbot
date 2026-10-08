@@ -15,7 +15,12 @@ interface SaveButtonProps {
  * It only POSTs the patch; the server re-verifies the session, the guild
  * membership and the settings group before writing anything.
  */
-export function SaveButton({ guildId, group, patch, label = 'Save changes' }: SaveButtonProps): JSX.Element {
+export function SaveButton({
+  guildId,
+  group,
+  patch,
+  label = 'Save changes',
+}: SaveButtonProps): JSX.Element {
   const [state, setState] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
   const [message, setMessage] = useState<string | null>(null);
 
@@ -45,7 +50,12 @@ export function SaveButton({ guildId, group, patch, label = 'Save changes' }: Sa
 
   return (
     <div className="row" role="status" aria-live="polite">
-      <button className="btn btn-primary" onClick={save} disabled={state === 'saving'} type="button">
+      <button
+        className="btn btn-primary"
+        onClick={save}
+        disabled={state === 'saving'}
+        type="button"
+      >
         {state === 'saving' ? 'Saving…' : label}
       </button>
       {message ? (

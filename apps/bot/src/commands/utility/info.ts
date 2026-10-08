@@ -4,7 +4,9 @@ import { formatBytes, formatDuration } from '../../utils/format.js';
 import { isYoungAccount, snowflakeTimestamp } from '@dcbot/shared';
 
 const botinfo = defineCommand({
-  data: new SlashCommandBuilder().setName('botinfo').setDescription('Shows bot status, uptime and system usage.'),
+  data: new SlashCommandBuilder()
+    .setName('botinfo')
+    .setDescription('Shows bot status, uptime and system usage.'),
   description: 'Shows bot status, uptime and system usage.',
   requiresDatabase: false,
   cooldownMs: 10_000,
@@ -24,14 +26,20 @@ const botinfo = defineCommand({
         { name: 'Node', value: process.version, inline: true },
         { name: 'Heap', value: formatBytes(memory.heapUsed), inline: true },
         { name: 'RSS', value: formatBytes(memory.rss), inline: true },
-        { name: 'Shard', value: `${(ctx.interaction.guild?.shardId ?? 0) + 1}/${client.options.shardCount ?? 1}`, inline: true },
+        {
+          name: 'Shard',
+          value: `${(ctx.interaction.guild?.shardId ?? 0) + 1}/${client.options.shardCount ?? 1}`,
+          inline: true,
+        },
       );
     await ctx.reply({ embeds: [embed] });
   },
 });
 
 const serverinfo = defineCommand({
-  data: new SlashCommandBuilder().setName('serverinfo').setDescription('Shows information about this server.'),
+  data: new SlashCommandBuilder()
+    .setName('serverinfo')
+    .setDescription('Shows information about this server.'),
   description: 'Shows information about this server.',
   requiresDatabase: false,
   cooldownMs: 5000,
@@ -56,7 +64,11 @@ const serverinfo = defineCommand({
         },
         { name: 'Boosts', value: String(guild.premiumSubscriptionCount ?? 0), inline: true },
         { name: 'Verification', value: String(guild.verificationLevel), inline: true },
-        { name: 'Created', value: created ? created.toISOString().slice(0, 10) : 'unknown', inline: true },
+        {
+          name: 'Created',
+          value: created ? created.toISOString().slice(0, 10) : 'unknown',
+          inline: true,
+        },
         { name: 'ID', value: guild.id, inline: true },
       );
     await ctx.reply({ embeds: [embed] });
@@ -84,9 +96,21 @@ const userinfo = defineCommand({
       .addFields(
         { name: 'ID', value: target.id, inline: true },
         { name: 'Nickname', value: target.nickname ?? 'none', inline: true },
-        { name: 'Joined', value: target.joinedAt?.toISOString().slice(0, 10) ?? 'unknown', inline: true },
-        { name: 'Account created', value: created ? created.toISOString().slice(0, 10) : 'unknown', inline: true },
-        { name: 'New account', value: isYoungAccount(target.id, 7 * 86_400_000) ? 'Yes (<7 days)' : 'No', inline: true },
+        {
+          name: 'Joined',
+          value: target.joinedAt?.toISOString().slice(0, 10) ?? 'unknown',
+          inline: true,
+        },
+        {
+          name: 'Account created',
+          value: created ? created.toISOString().slice(0, 10) : 'unknown',
+          inline: true,
+        },
+        {
+          name: 'New account',
+          value: isYoungAccount(target.id, 7 * 86_400_000) ? 'Yes (<7 days)' : 'No',
+          inline: true,
+        },
         { name: 'Roles', value: String(target.roles.cache.size - 1), inline: true },
         { name: 'Warnings', value: String(warnings.length), inline: true },
         { name: 'Bot', value: target.user.bot ? 'Yes' : 'No', inline: true },
@@ -98,7 +122,7 @@ const userinfo = defineCommand({
 const avatar = defineCommand({
   data: new SlashCommandBuilder()
     .setName('avatar')
-    .setDescription('Shows a user\'s avatar.')
+    .setDescription("Shows a user's avatar.")
     .addUserOption((option) => option.setName('user').setDescription('User whose avatar to show')),
   description: "Shows a user's avatar.",
   guildOnly: false,
@@ -118,7 +142,9 @@ const roleinfo = defineCommand({
   data: new SlashCommandBuilder()
     .setName('roleinfo')
     .setDescription('Shows information about a role.')
-    .addRoleOption((option) => option.setName('role').setDescription('Role to inspect').setRequired(true)),
+    .addRoleOption((option) =>
+      option.setName('role').setDescription('Role to inspect').setRequired(true),
+    ),
   description: 'Shows information about a role.',
   requiresDatabase: false,
   cooldownMs: 5000,
@@ -157,7 +183,8 @@ const channelinfo = defineCommand({
   async execute(ctx) {
     const selectedChannel = ctx.interaction.options.getChannel('channel');
     const channel =
-      (selectedChannel ? ctx.guild.channels.cache.get(selectedChannel.id) : undefined) ?? ctx.interaction.channel;
+      (selectedChannel ? ctx.guild.channels.cache.get(selectedChannel.id) : undefined) ??
+      ctx.interaction.channel;
     if (!channel) {
       await ctx.reply({ content: 'That channel is not available.', ephemeral: true });
       return;
@@ -177,7 +204,8 @@ const channelinfo = defineCommand({
           inline: true,
         },
       );
-    if ('topic' in channel && channel.topic) embed.addFields({ name: 'Topic', value: channel.topic });
+    if ('topic' in channel && channel.topic)
+      embed.addFields({ name: 'Topic', value: channel.topic });
     if ('rateLimitPerUser' in channel) {
       embed.addFields({ name: 'Slowmode', value: `${channel.rateLimitPerUser}s`, inline: true });
     }
@@ -197,13 +225,19 @@ const permissions = defineCommand({
   async execute(ctx) {
     const member = getTargetMember(ctx.interaction, 'user') ?? ctx.member;
     const channel = ctx.interaction.options.getChannel('channel') ?? ctx.interaction.channel;
-    const effective = channel && 'permissionsFor' in channel ? channel.permissionsFor(member) : member.permissions;
+    const effective =
+      channel && 'permissionsFor' in channel ? channel.permissionsFor(member) : member.permissions;
     const flags = effective.toArray();
     const embed = new EmbedBuilder()
       .setTitle(`Permissions for ${member.user.username}`)
       .setColor(COLORS.primary)
       .setDescription(
-        flags.length > 0 ? flags.map((flag) => `✅ ${flag}`).join('\n').slice(0, 4000) : '_No permissions._',
+        flags.length > 0
+          ? flags
+              .map((flag) => `✅ ${flag}`)
+              .join('\n')
+              .slice(0, 4000)
+          : '_No permissions._',
       );
     await ctx.reply({ embeds: [embed] });
   },

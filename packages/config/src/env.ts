@@ -115,10 +115,14 @@ function collectWarnings(env: Env): string[] {
     warnings.push('ALLOW_NO_DATABASE is set in production - the bot will run without persistence.');
   }
   if (env.isProduction && env.DISCORD_DEV_GUILD_ID) {
-    warnings.push('DISCORD_DEV_GUILD_ID is set in production - commands register to one guild only.');
+    warnings.push(
+      'DISCORD_DEV_GUILD_ID is set in production - commands register to one guild only.',
+    );
   }
   if (env.MUSIC_ENABLED && !env.LAVALINK_HOST) {
-    warnings.push('MUSIC_ENABLED=true but LAVALINK_HOST is empty - music commands will fail at runtime.');
+    warnings.push(
+      'MUSIC_ENABLED=true but LAVALINK_HOST is empty - music commands will fail at runtime.',
+    );
   }
   if (env.MUSIC_ENABLED && (env.SPOTIFY_CLIENT_ID || env.SPOTIFY_CLIENT_SECRET)) {
     if (!env.SPOTIFY_CLIENT_ID || !env.SPOTIFY_CLIENT_SECRET) {

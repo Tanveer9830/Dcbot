@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { isSnowflake, isYoungAccount, maskId, parseIdList, snowflakeTimestamp } from '@dcbot/shared';
+import {
+  isSnowflake,
+  isYoungAccount,
+  maskId,
+  parseIdList,
+  snowflakeTimestamp,
+} from '@dcbot/shared';
 
 describe('snowflake helpers', () => {
   it('validates snowflake shape', () => {

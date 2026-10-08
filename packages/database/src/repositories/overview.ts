@@ -54,7 +54,10 @@ export class OverviewRepository {
     return result.rows.map((row) => ({ day: row.day, count: Number(row.count) }));
   }
 
-  async topLevels(guildId: string, limit = 5): Promise<Array<{ userId: string; xp: number; level: number }>> {
+  async topLevels(
+    guildId: string,
+    limit = 5,
+  ): Promise<Array<{ userId: string; xp: number; level: number }>> {
     const result = await this.db.query<{ user_id: string; xp: string; level: number }>(
       'SELECT user_id, xp::text AS xp, level FROM xp_profiles WHERE guild_id = $1 ORDER BY xp DESC LIMIT $2',
       [guildId, limit],
@@ -67,11 +70,15 @@ export class OverviewRepository {
   }
 
   async globalStats(): Promise<{ guilds: number; commands: number; securityEvents: number }> {
-    const guilds = await this.db.queryOne<{ count: string }>('SELECT COUNT(*)::text AS count FROM guilds');
-    const commands = await this.db.queryOne<{ count: string }>(
-      "SELECT COUNT(*)::text AS count FROM custom_commands WHERE enabled = TRUE",
+    const guilds = await this.db.queryOne<{ count: string }>(
+      'SELECT COUNT(*)::text AS count FROM guilds',
     );
-    const events = await this.db.queryOne<{ count: string }>('SELECT COUNT(*)::text AS count FROM security_events');
+    const commands = await this.db.queryOne<{ count: string }>(
+      'SELECT COUNT(*)::text AS count FROM custom_commands WHERE enabled = TRUE',
+    );
+    const events = await this.db.queryOne<{ count: string }>(
+      'SELECT COUNT(*)::text AS count FROM security_events',
+    );
     return {
       guilds: Number(guilds?.count ?? '0'),
       commands: Number(commands?.count ?? '0'),

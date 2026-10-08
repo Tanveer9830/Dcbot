@@ -41,7 +41,11 @@ export class LevelingService {
     config.xpMax = Math.max(config.xpMin, Math.min(1000, Math.floor(config.xpMax)));
     config.cooldownSeconds = Math.max(5, Math.min(3600, Math.floor(config.cooldownSeconds)));
     config.multiplier = Math.max(0.1, Math.min(10, config.multiplier));
-    await this.repos.guilds.updateSettingsGroup(guildId, 'leveling', config as unknown as Record<string, unknown>);
+    await this.repos.guilds.updateSettingsGroup(
+      guildId,
+      'leveling',
+      config as unknown as Record<string, unknown>,
+    );
     return config;
   }
 
@@ -68,7 +72,12 @@ export class LevelingService {
     });
   }
 
-  async rankEmbed(guildId: string, userId: string, displayName: string, avatarUrl: string | null): Promise<EmbedBuilder> {
+  async rankEmbed(
+    guildId: string,
+    userId: string,
+    displayName: string,
+    avatarUrl: string | null,
+  ): Promise<EmbedBuilder> {
     const profile = await this.repos.leveling.getProfile(guildId, userId);
     const rank = await this.repos.leveling.rankOf(guildId, userId);
     const progress = levelProgress(profile.xp);

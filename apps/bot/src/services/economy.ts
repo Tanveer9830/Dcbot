@@ -55,7 +55,11 @@ export class EconomyService {
     config.workMin = clamp(config.workMin, 0, 1_000_000);
     config.workMax = Math.max(config.workMin, clamp(config.workMax, 0, 1_000_000));
     config.transferFeePercent = clamp(config.transferFeePercent, 0, 25);
-    await this.repos.guilds.updateSettingsGroup(guildId, 'economy', config as unknown as Record<string, unknown>);
+    await this.repos.guilds.updateSettingsGroup(
+      guildId,
+      'economy',
+      config as unknown as Record<string, unknown>,
+    );
     return config;
   }
 
@@ -65,7 +69,12 @@ export class EconomyService {
     return { account, config };
   }
 
-  async claim(guildId: string, userId: string, kind: 'daily' | 'weekly' | 'work', random: () => number = Math.random) {
+  async claim(
+    guildId: string,
+    userId: string,
+    kind: 'daily' | 'weekly' | 'work',
+    random: () => number = Math.random,
+  ) {
     const config = await this.config(guildId);
     if (!config.enabled) throw new ValidationError('The economy is disabled in this server.');
     const range =
@@ -87,9 +96,12 @@ export class EconomyService {
     idempotencyKey?: string;
   }) {
     const config = await this.config(params.guildId);
-    if (!config.transfersEnabled) throw new ValidationError('Transfers are disabled in this server.');
+    if (!config.transfersEnabled)
+      throw new ValidationError('Transfers are disabled in this server.');
     if (params.amount < config.minimumTransfer) {
-      throw new ValidationError(`The minimum transfer is ${config.minimumTransfer} ${config.currencyName}.`);
+      throw new ValidationError(
+        `The minimum transfer is ${config.minimumTransfer} ${config.currencyName}.`,
+      );
     }
     return this.repos.economy.transfer(params);
   }
@@ -114,8 +126,16 @@ export class EconomyService {
       .setTitle(`${config.currencySymbol} ${userId === '' ? 'Balance' : `<@${userId}>'s profile`}`)
       .setColor(0xf1c40f)
       .addFields(
-        { name: 'Wallet', value: `${formatNumber(account.wallet)} ${config.currencyName}`, inline: true },
-        { name: 'Bank', value: `${formatNumber(account.bank)} ${config.currencyName}`, inline: true },
+        {
+          name: 'Wallet',
+          value: `${formatNumber(account.wallet)} ${config.currencyName}`,
+          inline: true,
+        },
+        {
+          name: 'Bank',
+          value: `${formatNumber(account.bank)} ${config.currencyName}`,
+          inline: true,
+        },
         { name: 'Total', value: formatNumber(account.wallet + account.bank), inline: true },
         { name: 'Level', value: `${progress.level}`, inline: true },
         { name: 'XP', value: formatNumber(xpProfile.xp), inline: true },

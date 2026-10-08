@@ -106,7 +106,9 @@ export function SettingsForm({ guildId, group, fields }: SettingsFormProps): JSX
             <input
               id={field.key}
               type="text"
-              value={Array.isArray(values[field.key]) ? (values[field.key] as string[]).join(', ') : ''}
+              value={
+                Array.isArray(values[field.key]) ? (values[field.key] as string[]).join(', ') : ''
+              }
               onChange={(event) =>
                 set(
                   field.key,
@@ -130,18 +132,34 @@ export function SettingsForm({ guildId, group, fields }: SettingsFormProps): JSX
               type={field.type === 'number' ? 'number' : 'text'}
               min={field.min}
               max={field.max}
-              value={values[field.key] === null || values[field.key] === undefined ? '' : String(values[field.key])}
+              value={
+                values[field.key] === null || values[field.key] === undefined
+                  ? ''
+                  : String(values[field.key])
+              }
               onChange={(event) =>
-                set(field.key, field.type === 'number' ? Number(event.target.value) : event.target.value)
+                set(
+                  field.key,
+                  field.type === 'number' ? Number(event.target.value) : event.target.value,
+                )
               }
             />
           )}
-          {field.help ? <div className="muted" style={{ fontSize: '0.82rem', marginTop: 4 }}>{field.help}</div> : null}
+          {field.help ? (
+            <div className="muted" style={{ fontSize: '0.82rem', marginTop: 4 }}>
+              {field.help}
+            </div>
+          ) : null}
         </div>
       ))}
 
       <div className="row" role="status" aria-live="polite">
-        <button className="btn btn-primary" onClick={save} disabled={status === 'saving'} type="button">
+        <button
+          className="btn btn-primary"
+          onClick={save}
+          disabled={status === 'saving'}
+          type="button"
+        >
           {status === 'saving' ? 'Saving…' : 'Save changes'}
         </button>
         {message ? (

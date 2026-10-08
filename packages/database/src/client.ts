@@ -69,7 +69,9 @@ export class Database implements Queryable {
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       // Never leak connection details that may appear in driver errors.
-      throw new Error(`Database query failed: ${message.replace(/postgres:\/\/\S+/g, '[redacted]')}`);
+      throw new Error(
+        `Database query failed: ${message.replace(/postgres:\/\/\S+/g, '[redacted]')}`,
+      );
     }
   }
 
@@ -168,7 +170,10 @@ export class TransactionClient implements Queryable {
 let singleton: Database | null = null;
 
 /** Process-wide database singleton. Pass `create: true` once at startup. */
-export function getDatabase(connectionString: string, options?: Omit<DatabaseOptions, 'connectionString'>): Database {
+export function getDatabase(
+  connectionString: string,
+  options?: Omit<DatabaseOptions, 'connectionString'>,
+): Database {
   if (!singleton) singleton = new Database({ connectionString, ...options });
   return singleton;
 }

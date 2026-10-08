@@ -5,17 +5,15 @@ export class ModerationRepository {
   constructor(private readonly db: Queryable) {}
 
   /** Creates a case with a per-guild sequential number. */
-  async createCase(
-    params: {
-      guildId: string;
-      type: ModerationActionType;
-      targetId: string;
-      actorId: string;
-      reason: string;
-      evidenceUrl?: string | null;
-      expiresAt?: Date | null;
-    },
-  ): Promise<ModerationCase> {
+  async createCase(params: {
+    guildId: string;
+    type: ModerationActionType;
+    targetId: string;
+    actorId: string;
+    reason: string;
+    evidenceUrl?: string | null;
+    expiresAt?: Date | null;
+  }): Promise<ModerationCase> {
     const row = await this.db.query<{ case_number: number }>(
       `INSERT INTO moderation_cases (guild_id, case_number, type, target_id, actor_id, reason, evidence_url, expires_at)
        VALUES ($1, (SELECT COALESCE(MAX(case_number), 0) + 1 FROM moderation_cases WHERE guild_id = $1),
@@ -67,11 +65,7 @@ export class ModerationRepository {
     return ids;
   }
 
-  async listCasesForUser(
-    guildId: string,
-    userId: string,
-    limit = 25,
-  ): Promise<ModerationCase[]> {
+  async listCasesForUser(guildId: string, userId: string, limit = 25): Promise<ModerationCase[]> {
     const result = await this.db.query<Record<string, unknown>>(
       `SELECT * FROM moderation_cases
         WHERE guild_id = $1 AND target_id = $2

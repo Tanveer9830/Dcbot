@@ -23,7 +23,10 @@ export const customCommandContentSchema = z
   .string()
   .trim()
   .min(1, 'Response content is required.')
-  .max(DISCORD_LIMITS.MAX_MESSAGE_CONTENT, `Response must be ${DISCORD_LIMITS.MAX_MESSAGE_CONTENT} characters or fewer.`);
+  .max(
+    DISCORD_LIMITS.MAX_MESSAGE_CONTENT,
+    `Response must be ${DISCORD_LIMITS.MAX_MESSAGE_CONTENT} characters or fewer.`,
+  );
 
 export const embedFieldSchema = z.object({
   name: z.string().trim().min(1).max(256),

@@ -39,7 +39,11 @@ export function registerGuildEvents(client: Client, ctx: BotContext): void {
   client.on(
     Events.GuildCreate,
     guard('guildCreate', async (guild: Guild) => {
-      logger.info('joined guild', { guildId: guild.id, name: guild.name, members: guild.memberCount });
+      logger.info('joined guild', {
+        guildId: guild.id,
+        name: guild.name,
+        members: guild.memberCount,
+      });
       await ctx.repos?.guilds.upsertGuild({
         guildId: guild.id,
         name: guild.name,
@@ -84,16 +88,26 @@ export function registerGuildEvents(client: Client, ctx: BotContext): void {
           });
         }
       }
-      await ctx.services.logging?.send(member.guild, 'members', () =>
-        new EmbedBuilder()
-          .setTitle('Member joined')
-          .setDescription(`${member} (${member.id})`)
-          .addFields({ name: 'Account created', value: member.user.createdAt.toISOString().slice(0, 10) })
-          .setColor(0x57f287)
-          .setTimestamp(),
-      { event: 'member_join' });
+      await ctx.services.logging?.send(
+        member.guild,
+        'members',
+        () =>
+          new EmbedBuilder()
+            .setTitle('Member joined')
+            .setDescription(`${member} (${member.id})`)
+            .addFields({
+              name: 'Account created',
+              value: member.user.createdAt.toISOString().slice(0, 10),
+            })
+            .setColor(0x57f287)
+            .setTimestamp(),
+        { event: 'member_join' },
+      );
       if (result?.rolesAdded.length) {
-        logger.debug('auto-roles applied', { guildId: member.guild.id, count: result.rolesAdded.length });
+        logger.debug('auto-roles applied', {
+          guildId: member.guild.id,
+          count: result.rolesAdded.length,
+        });
       }
     }),
   );
@@ -104,13 +118,17 @@ export function registerGuildEvents(client: Client, ctx: BotContext): void {
       if (!member.partial && member.user) {
         await ctx.services.welcome?.onMemberLeave(member);
       }
-      await ctx.services.logging?.send(member.guild, 'members', () =>
-        new EmbedBuilder()
-          .setTitle('Member left')
-          .setDescription(`${member.user?.username ?? 'unknown'} (${member.id})`)
-          .setColor(0xed4245)
-          .setTimestamp(),
-      { event: 'member_leave' });
+      await ctx.services.logging?.send(
+        member.guild,
+        'members',
+        () =>
+          new EmbedBuilder()
+            .setTitle('Member left')
+            .setDescription(`${member.user?.username ?? 'unknown'} (${member.id})`)
+            .setColor(0xed4245)
+            .setTimestamp(),
+        { event: 'member_leave' },
+      );
     }),
   );
 
@@ -165,7 +183,10 @@ export function registerGuildEvents(client: Client, ctx: BotContext): void {
         if (decision.protected && !decision.exempt && decision.matchedUserId) {
           let actionTaken = 'logged';
           if (decision.mode === 'delete' && message.deletable) {
-            await message.delete().then(() => (actionTaken = 'deleted')).catch(() => undefined);
+            await message
+              .delete()
+              .then(() => (actionTaken = 'deleted'))
+              .catch(() => undefined);
           } else if (decision.mode === 'timeout' && member.moderatable) {
             await member
               .timeout(5 * 60_000, 'Mention protection: unwanted mention')
@@ -173,7 +194,12 @@ export function registerGuildEvents(client: Client, ctx: BotContext): void {
               .catch(() => undefined);
           } else if (decision.mode === 'warn') {
             await ctx.services.moderation
-              ?.warn({ guild, actor: guild.members.me!, target: member, reason: 'Mentioned a protected user' })
+              ?.warn({
+                guild,
+                actor: guild.members.me!,
+                target: member,
+                reason: 'Mentioned a protected user',
+              })
               .then(() => (actionTaken = 'warned'))
               .catch(() => undefined);
           }
@@ -197,11 +223,15 @@ export function registerGuildEvents(client: Client, ctx: BotContext): void {
       });
       if (award?.leveledUp && award.awarded > 0) {
         const settings = await ctx.repos?.guilds.getSettings(guild.id);
-        const config = (settings?.leveling ?? {}) as { announceLevelUp?: boolean; announceChannelId?: string | null };
+        const config = (settings?.leveling ?? {}) as {
+          announceLevelUp?: boolean;
+          announceChannelId?: string | null;
+        };
         if (config.announceLevelUp !== false) {
           const announced =
-            (config.announceChannelId ? guild.channels.cache.get(config.announceChannelId) : undefined) ??
-            message.channel;
+            (config.announceChannelId
+              ? guild.channels.cache.get(config.announceChannelId)
+              : undefined) ?? message.channel;
           if (announced && announced.type === ChannelType.GuildText) {
             await (announced as TextChannel)
               .send({
@@ -267,35 +297,42 @@ export function registerGuildEvents(client: Client, ctx: BotContext): void {
               { name: 'Channel', value: `<#${message.channelId}>`, inline: true },
               {
                 name: 'Author',
-                value: message.author ? `${message.author} (${message.author.id})` : 'unknown (not cached)',
+                value: message.author
+                  ? `${message.author} (${message.author.id})`
+                  : 'unknown (not cached)',
                 inline: true,
               },
             )
             .setColor(0xed4245)
             .setTimestamp(),
-      { event: 'message_delete' });
+        { event: 'message_delete' },
+      );
     }),
   );
 
   client.on(
     Events.MessageUpdate,
-    guard('messageUpdate', async (before: Message | PartialMessage, after: Message | PartialMessage) => {
-      if (!after.guild || !after.inGuild() || before.content === after.content) return;
-      await ctx.services.logging?.send(
-        after.guild,
-        'messages',
-        () =>
-          new EmbedBuilder()
-            .setTitle('Message edited')
-            .setDescription(after.url ? `[Jump](${after.url})` : '_jump link unavailable_')
-            .addFields(
-              { name: 'Before', value: (before.content || '_empty_').slice(0, 1000) },
-              { name: 'After', value: (after.content || '_empty_').slice(0, 1000) },
-            )
-            .setColor(0xfaa61a)
-            .setTimestamp(),
-      { event: 'message_edit' });
-    }),
+    guard(
+      'messageUpdate',
+      async (before: Message | PartialMessage, after: Message | PartialMessage) => {
+        if (!after.guild || !after.inGuild() || before.content === after.content) return;
+        await ctx.services.logging?.send(
+          after.guild,
+          'messages',
+          () =>
+            new EmbedBuilder()
+              .setTitle('Message edited')
+              .setDescription(after.url ? `[Jump](${after.url})` : '_jump link unavailable_')
+              .addFields(
+                { name: 'Before', value: (before.content || '_empty_').slice(0, 1000) },
+                { name: 'After', value: (after.content || '_empty_').slice(0, 1000) },
+              )
+              .setColor(0xfaa61a)
+              .setTimestamp(),
+          { event: 'message_edit' },
+        );
+      },
+    ),
   );
 
   client.on(
@@ -306,7 +343,11 @@ export function registerGuildEvents(client: Client, ctx: BotContext): void {
       const emoji = reaction.emoji.id ?? reaction.emoji.name ?? '';
       if (!emoji) return;
 
-      const binding = await ctx.repos?.community.reactionRoleFor(guild.id, reaction.message.id, emoji);
+      const binding = await ctx.repos?.community.reactionRoleFor(
+        guild.id,
+        reaction.message.id,
+        emoji,
+      );
       if (!binding) return;
       const member = await guild.members.fetch(user.id).catch(() => null);
       if (!member) return;
@@ -329,7 +370,11 @@ export function registerGuildEvents(client: Client, ctx: BotContext): void {
       if (user.bot || !reaction.message.guild) return;
       const guild = reaction.message.guild;
       const emoji = reaction.emoji.id ?? reaction.emoji.name ?? '';
-      const binding = await ctx.repos?.community.reactionRoleFor(guild.id, reaction.message.id, emoji);
+      const binding = await ctx.repos?.community.reactionRoleFor(
+        guild.id,
+        reaction.message.id,
+        emoji,
+      );
       if (!binding || binding.mode === 'bind') return;
       const member = await guild.members.fetch(user.id).catch(() => null);
       if (!member) return;
@@ -394,10 +439,18 @@ export function registerGuildEvents(client: Client, ctx: BotContext): void {
       if (!decision.record) return;
 
       let actionTaken = 'none';
-      if (!decision.exempt && decision.mode === 'unpin' && messageId && channel.type === ChannelType.GuildText) {
+      if (
+        !decision.exempt &&
+        decision.mode === 'unpin' &&
+        messageId &&
+        channel.type === ChannelType.GuildText
+      ) {
         const fetched = await (channel as TextChannel).messages.fetch(messageId).catch(() => null);
         if (fetched?.pinnable) {
-          await fetched.unpin('no-pin protection').then(() => (actionTaken = 'unpinned')).catch(() => undefined);
+          await fetched
+            .unpin('no-pin protection')
+            .then(() => (actionTaken = 'unpinned'))
+            .catch(() => undefined);
         }
       }
 
@@ -440,12 +493,19 @@ export function registerGuildEvents(client: Client, ctx: BotContext): void {
       if (!dangerous.has(entry.action)) return;
 
       const actorId = entry.executorId;
-      const trusted = actorId ? await ctx.services.security?.isTrusted(guild.id, actorId, []) : false;
+      const trusted = actorId
+        ? await ctx.services.security?.isTrusted(guild.id, actorId, [])
+        : false;
       if (trusted) return;
 
       let severity: 'low' | 'medium' | 'high' | 'critical' = 'medium';
-      let type: 'role_deleted' | 'channel_deleted' | 'webhook_update' | 'mass_ban' | 'mass_kick' | 'dangerous_permission_change' =
-        'dangerous_permission_change';
+      let type:
+        | 'role_deleted'
+        | 'channel_deleted'
+        | 'webhook_update'
+        | 'mass_ban'
+        | 'mass_kick'
+        | 'dangerous_permission_change' = 'dangerous_permission_change';
 
       if (entry.action === AuditLogEvent.MemberBanAdd) {
         type = 'mass_ban';
@@ -459,7 +519,10 @@ export function registerGuildEvents(client: Client, ctx: BotContext): void {
       } else if (entry.action === AuditLogEvent.ChannelDelete) {
         type = 'channel_deleted';
         severity = 'high';
-      } else if (entry.action === AuditLogEvent.WebhookCreate || entry.action === AuditLogEvent.WebhookDelete) {
+      } else if (
+        entry.action === AuditLogEvent.WebhookCreate ||
+        entry.action === AuditLogEvent.WebhookDelete
+      ) {
         type = 'webhook_update';
         severity = 'high';
       } else if (entry.action === AuditLogEvent.RoleUpdate) {
@@ -524,7 +587,10 @@ export function registerGuildEvents(client: Client, ctx: BotContext): void {
         guildId: channel.guild.id,
         type: 'channel_deleted',
         severity: 'high',
-        detail: { channelId: channel.id, channelName: 'name' in channel ? String(channel.name) : 'unknown' },
+        detail: {
+          channelId: channel.id,
+          channelName: 'name' in channel ? String(channel.name) : 'unknown',
+        },
       });
     }),
   );
@@ -562,15 +628,22 @@ export function registerGuildEvents(client: Client, ctx: BotContext): void {
             )
             .setColor(0xfaa61a)
             .setTimestamp(),
-      { event: 'role_change' });
+        { event: 'role_change' },
+      );
     }),
   );
 }
 
 /** Applies the configured AutoMod response. */
-async function applyAutoModAction(message: Message, rule: string, _isStaff: boolean): Promise<void> {
+async function applyAutoModAction(
+  message: Message,
+  rule: string,
+  _isStaff: boolean,
+): Promise<void> {
   const ctxRepos = (message.client as Client & { ctx?: BotContext }).ctx;
-  const settings = ctxRepos?.repos ? await ctxRepos.repos.guilds.getSettings(message.guild!.id) : null;
+  const settings = ctxRepos?.repos
+    ? await ctxRepos.repos.guilds.getSettings(message.guild!.id)
+    : null;
   const config = (settings?.automod ?? {}) as { action?: 'log' | 'delete' | 'warn' | 'timeout' };
   const action = config.action ?? 'log';
 
@@ -589,15 +662,12 @@ async function applyAutoModAction(message: Message, rule: string, _isStaff: bool
       .catch(() => undefined);
   }
 
-  await ctxRepos?.services.logging?.send(
-    message.guild!,
-    'messages',
-    () =>
-      new EmbedBuilder()
-        .setTitle(`AutoMod: ${rule}`)
-        .setDescription(`${message.author} in <#${message.channelId}>`)
-        .addFields({ name: 'Action', value: action })
-        .setColor(0xfaa61a)
-        .setTimestamp(),
+  await ctxRepos?.services.logging?.send(message.guild!, 'messages', () =>
+    new EmbedBuilder()
+      .setTitle(`AutoMod: ${rule}`)
+      .setDescription(`${message.author} in <#${message.channelId}>`)
+      .addFields({ name: 'Action', value: action })
+      .setColor(0xfaa61a)
+      .setTimestamp(),
   );
 }

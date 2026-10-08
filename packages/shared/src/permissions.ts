@@ -7,17 +7,26 @@ import { PERMISSION_BIT, type PermissionBit } from './constants.js';
  * can be unit tested without booting a Discord client or touching the network.
  */
 
-export function hasPermission(bitfield: bigint | null | undefined, permission: PermissionBit): boolean {
+export function hasPermission(
+  bitfield: bigint | null | undefined,
+  permission: PermissionBit,
+): boolean {
   if (bitfield === null || bitfield === undefined) return false;
   if ((bitfield & PERMISSION_BIT.ADMINISTRATOR) === PERMISSION_BIT.ADMINISTRATOR) return true;
   return (bitfield & permission) === permission;
 }
 
-export function hasAll(bitfield: bigint | null | undefined, permissions: readonly PermissionBit[]): boolean {
+export function hasAll(
+  bitfield: bigint | null | undefined,
+  permissions: readonly PermissionBit[],
+): boolean {
   return permissions.every((permission) => hasPermission(bitfield, permission));
 }
 
-export function hasAny(bitfield: bigint | null | undefined, permissions: readonly PermissionBit[]): boolean {
+export function hasAny(
+  bitfield: bigint | null | undefined,
+  permissions: readonly PermissionBit[],
+): boolean {
   return permissions.some((permission) => hasPermission(bitfield, permission));
 }
 

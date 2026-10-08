@@ -19,7 +19,10 @@ export interface SecuritySettings {
   updatedAt: Date;
 }
 
-export const SECURITY_DEFAULTS: Omit<SecuritySettings, 'guildId' | 'configHistory' | 'updatedBy' | 'updatedAt'> = {
+export const SECURITY_DEFAULTS: Omit<
+  SecuritySettings,
+  'guildId' | 'configHistory' | 'updatedBy' | 'updatedAt'
+> = {
   antiNukeEnabled: true,
   antiRaidEnabled: true,
   antiSpamEnabled: true,
@@ -43,7 +46,13 @@ export class SecurityRepository {
     );
     const row = result.rows[0];
     if (!row) {
-      return { ...SECURITY_DEFAULTS, guildId, configHistory: [], updatedBy: null, updatedAt: new Date() };
+      return {
+        ...SECURITY_DEFAULTS,
+        guildId,
+        configHistory: [],
+        updatedBy: null,
+        updatedAt: new Date(),
+      };
     }
     return mapSettings(row);
   }
@@ -53,7 +62,10 @@ export class SecurityRepository {
     patch: Partial<Omit<SecuritySettings, 'guildId' | 'configHistory' | 'updatedAt'>>,
   ): Promise<SecuritySettings> {
     // The row has a FK to guilds; make sure the guild row exists first.
-    await this.db.query('INSERT INTO guilds (guild_id) VALUES ($1) ON CONFLICT (guild_id) DO NOTHING', [guildId]);
+    await this.db.query(
+      'INSERT INTO guilds (guild_id) VALUES ($1) ON CONFLICT (guild_id) DO NOTHING',
+      [guildId],
+    );
 
     const current = await this.getSettings(guildId);
     const next = { ...current, ...patch };
@@ -103,7 +115,12 @@ export class SecurityRepository {
     return this.getSettings(guildId);
   }
 
-  async addTrustedUser(guildId: string, userId: string, grantedBy: string, reason?: string): Promise<void> {
+  async addTrustedUser(
+    guildId: string,
+    userId: string,
+    grantedBy: string,
+    reason?: string,
+  ): Promise<void> {
     await this.db.query(
       `INSERT INTO security_trusted_users (guild_id, user_id, granted_by, reason)
        VALUES ($1, $2, $3, $4)
@@ -113,14 +130,19 @@ export class SecurityRepository {
   }
 
   async removeTrustedUser(guildId: string, userId: string): Promise<boolean> {
-    const result = await this.db.query('DELETE FROM security_trusted_users WHERE guild_id = $1 AND user_id = $2', [
-      guildId,
-      userId,
-    ]);
+    const result = await this.db.query(
+      'DELETE FROM security_trusted_users WHERE guild_id = $1 AND user_id = $2',
+      [guildId, userId],
+    );
     return (result.rowCount ?? 0) > 0;
   }
 
-  async addTrustedRole(guildId: string, roleId: string, grantedBy: string, reason?: string): Promise<void> {
+  async addTrustedRole(
+    guildId: string,
+    roleId: string,
+    grantedBy: string,
+    reason?: string,
+  ): Promise<void> {
     await this.db.query(
       `INSERT INTO security_trusted_roles (guild_id, role_id, granted_by, reason)
        VALUES ($1, $2, $3, $4)
@@ -130,10 +152,10 @@ export class SecurityRepository {
   }
 
   async removeTrustedRole(guildId: string, roleId: string): Promise<boolean> {
-    const result = await this.db.query('DELETE FROM security_trusted_roles WHERE guild_id = $1 AND role_id = $2', [
-      guildId,
-      roleId,
-    ]);
+    const result = await this.db.query(
+      'DELETE FROM security_trusted_roles WHERE guild_id = $1 AND role_id = $2',
+      [guildId, roleId],
+    );
     return (result.rowCount ?? 0) > 0;
   }
 
@@ -190,7 +212,11 @@ export class SecurityRepository {
     return Number(result.rows[0]?.id ?? 0);
   }
 
-  async recentEvents(guildId: string, limit = 25, type?: SecurityEventType): Promise<SecurityEvent[]> {
+  async recentEvents(
+    guildId: string,
+    limit = 25,
+    type?: SecurityEventType,
+  ): Promise<SecurityEvent[]> {
     const result = await this.db.query<Record<string, unknown>>(
       type
         ? `SELECT * FROM security_events WHERE guild_id = $1 AND type = $2 ORDER BY created_at DESC LIMIT $3`
@@ -243,15 +269,22 @@ export class SecurityRepository {
   }
 
   async unprotectUser(guildId: string, userId: string): Promise<boolean> {
-    const result = await this.db.query('DELETE FROM no_tag_protected WHERE guild_id = $1 AND user_id = $2', [
-      guildId,
-      userId,
-    ]);
+    const result = await this.db.query(
+      'DELETE FROM no_tag_protected WHERE guild_id = $1 AND user_id = $2',
+      [guildId, userId],
+    );
     return (result.rowCount ?? 0) > 0;
   }
 
   async protectedUsers(guildId: string): Promise<
-    Array<{ userId: string; mode: string; exemptRoleIds: string[]; exemptUserIds: string[]; setBy: string; selfSelected: boolean }>
+    Array<{
+      userId: string;
+      mode: string;
+      exemptRoleIds: string[];
+      exemptUserIds: string[];
+      setBy: string;
+      selfSelected: boolean;
+    }>
   > {
     const result = await this.db.query<Record<string, unknown>>(
       'SELECT * FROM no_tag_protected WHERE guild_id = $1 ORDER BY created_at DESC',
@@ -267,7 +300,15 @@ export class SecurityRepository {
     }));
   }
 
-  async isProtected(guildId: string, userId: string): Promise<{ protected: boolean; mode: string; exemptRoleIds: string[]; exemptUserIds: string[] }> {
+  async isProtected(
+    guildId: string,
+    userId: string,
+  ): Promise<{
+    protected: boolean;
+    mode: string;
+    exemptRoleIds: string[];
+    exemptUserIds: string[];
+  }> {
     const result = await this.db.query<Record<string, unknown>>(
       'SELECT * FROM no_tag_protected WHERE guild_id = $1 AND user_id = $2',
       [guildId, userId],
@@ -320,8 +361,17 @@ export class SecurityRepository {
     return Number(result.rows[0]?.id ?? 0);
   }
 
-  async noTagViolations(guildId: string, limit = 25): Promise<
-    Array<{ id: number; offenderId: string; protectedUserId: string; actionTaken: string; createdAt: Date }>
+  async noTagViolations(
+    guildId: string,
+    limit = 25,
+  ): Promise<
+    Array<{
+      id: number;
+      offenderId: string;
+      protectedUserId: string;
+      actionTaken: string;
+      createdAt: Date;
+    }>
   > {
     const result = await this.db.query<Record<string, unknown>>(
       'SELECT * FROM no_tag_violations WHERE guild_id = $1 ORDER BY created_at DESC LIMIT $2',
@@ -374,7 +424,11 @@ export class SecurityRepository {
     return Number(result.rows[0]?.id ?? 0);
   }
 
-  async pinEvents(guildId: string, limit = 25, channelId?: string): Promise<
+  async pinEvents(
+    guildId: string,
+    limit = 25,
+    channelId?: string,
+  ): Promise<
     Array<{
       id: number;
       channelId: string;
@@ -423,10 +477,9 @@ export class SecurityRepository {
         `DELETE FROM no_tag_violations WHERE created_at < ${cutoff}`,
         [String(retentionDays)],
       );
-      const noPin = await client.query(
-        `DELETE FROM no_pin_events WHERE created_at < ${cutoff}`,
-        [String(retentionDays)],
-      );
+      const noPin = await client.query(`DELETE FROM no_pin_events WHERE created_at < ${cutoff}`, [
+        String(retentionDays),
+      ]);
       return {
         securityEvents: events.rowCount ?? 0,
         noTagViolations: noTag.rowCount ?? 0,

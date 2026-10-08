@@ -8,7 +8,8 @@ export const dynamic = 'force-dynamic';
 const ERROR_TEXT: Record<string, string> = {
   no_code: 'Discord did not return an authorization code.',
   state_mismatch: 'The login state did not match - the link probably expired. Try again.',
-  token_exchange: 'Discord rejected the token exchange. Check DISCORD_CLIENT_SECRET and DISCORD_REDIRECT_URI.',
+  token_exchange:
+    'Discord rejected the token exchange. Check DISCORD_CLIENT_SECRET and DISCORD_REDIRECT_URI.',
   user_fetch: 'Could not fetch your Discord profile. Try again.',
 };
 
@@ -26,15 +27,18 @@ export default async function LoginPage({
       <div className="card" style={{ maxWidth: 460, margin: '0 auto', textAlign: 'center' }}>
         <h1>Sign in</h1>
         <p className="muted">
-          Dcbot uses Discord OAuth2. We request <code>identify</code> and <code>guilds</code> only - no message content
-          and no DMs.
+          Dcbot uses Discord OAuth2. We request <code>identify</code> and <code>guilds</code> only -
+          no message content and no DMs.
         </p>
         {searchParams.error ? (
-          <div className="alert alert-error">{ERROR_TEXT[searchParams.error] ?? 'Sign-in failed.'}</div>
+          <div className="alert alert-error">
+            {ERROR_TEXT[searchParams.error] ?? 'Sign-in failed.'}
+          </div>
         ) : null}
         {problems.missing.length > 0 ? (
           <div className="alert">
-            OAuth2 is not fully configured on this server. Missing: <code>{problems.missing.join(', ')}</code>
+            OAuth2 is not fully configured on this server. Missing:{' '}
+            <code>{problems.missing.join(', ')}</code>
           </div>
         ) : null}
         <Link className="btn btn-primary" href="/api/auth/login">

@@ -1,15 +1,25 @@
 import { SlashCommandBuilder } from 'discord.js';
-import { defineCommand, getTargetMember, requireService, successEmbed, errorEmbed, ValidationError } from '../helpers.js';
+import {
+  defineCommand,
+  getTargetMember,
+  requireService,
+  successEmbed,
+  errorEmbed,
+  ValidationError,
+} from '../helpers.js';
 import { formatDuration, parseDuration } from '../../utils/format.js';
 import { PERMISSION_BIT } from '@dcbot/shared';
-
 
 const ban = defineCommand({
   data: new SlashCommandBuilder()
     .setName('ban')
     .setDescription('Bans a member.')
-    .addUserOption((option) => option.setName('user').setDescription('Member to ban').setRequired(true))
-    .addStringOption((option) => option.setName('reason').setDescription('Reason recorded in the mod log').setRequired(true)),
+    .addUserOption((option) =>
+      option.setName('user').setDescription('Member to ban').setRequired(true),
+    )
+    .addStringOption((option) =>
+      option.setName('reason').setDescription('Reason recorded in the mod log').setRequired(true),
+    ),
   description: 'Bans a member.',
   staffOnly: true,
   userPermissions: [PERMISSION_BIT.BAN_MEMBERS],
@@ -25,7 +35,9 @@ const ban = defineCommand({
       target,
       reason: ctx.interaction.options.getString('reason', true),
     });
-    await ctx.reply({ embeds: [result.success ? successEmbed(result.message) : errorEmbed(result.message)] });
+    await ctx.reply({
+      embeds: [result.success ? successEmbed(result.message) : errorEmbed(result.message)],
+    });
   },
 });
 
@@ -33,8 +45,12 @@ const unban = defineCommand({
   data: new SlashCommandBuilder()
     .setName('unban')
     .setDescription('Revokes a ban by user ID.')
-    .addStringOption((option) => option.setName('user_id').setDescription('User ID to unban').setRequired(true))
-    .addStringOption((option) => option.setName('reason').setDescription('Reason recorded in the mod log').setRequired(true)),
+    .addStringOption((option) =>
+      option.setName('user_id').setDescription('User ID to unban').setRequired(true),
+    )
+    .addStringOption((option) =>
+      option.setName('reason').setDescription('Reason recorded in the mod log').setRequired(true),
+    ),
   description: 'Revokes a ban by user ID.',
   staffOnly: true,
   userPermissions: [PERMISSION_BIT.BAN_MEMBERS],
@@ -47,7 +63,9 @@ const unban = defineCommand({
       targetId: ctx.interaction.options.getString('user_id', true),
       reason: ctx.interaction.options.getString('reason', true),
     });
-    await ctx.reply({ embeds: [result.success ? successEmbed(result.message) : errorEmbed(result.message)] });
+    await ctx.reply({
+      embeds: [result.success ? successEmbed(result.message) : errorEmbed(result.message)],
+    });
   },
 });
 
@@ -55,8 +73,12 @@ const kick = defineCommand({
   data: new SlashCommandBuilder()
     .setName('kick')
     .setDescription('Kicks a member.')
-    .addUserOption((option) => option.setName('user').setDescription('Member to kick').setRequired(true))
-    .addStringOption((option) => option.setName('reason').setDescription('Reason recorded in the mod log').setRequired(true)),
+    .addUserOption((option) =>
+      option.setName('user').setDescription('Member to kick').setRequired(true),
+    )
+    .addStringOption((option) =>
+      option.setName('reason').setDescription('Reason recorded in the mod log').setRequired(true),
+    ),
   description: 'Kicks a member.',
   staffOnly: true,
   userPermissions: [PERMISSION_BIT.KICK_MEMBERS],
@@ -71,7 +93,9 @@ const kick = defineCommand({
       target,
       reason: ctx.interaction.options.getString('reason', true),
     });
-    await ctx.reply({ embeds: [result.success ? successEmbed(result.message) : errorEmbed(result.message)] });
+    await ctx.reply({
+      embeds: [result.success ? successEmbed(result.message) : errorEmbed(result.message)],
+    });
   },
 });
 
@@ -83,16 +107,29 @@ const timeout = defineCommand({
       sub
         .setName('add')
         .setDescription('Times a member out.')
-        .addUserOption((option) => option.setName('user').setDescription('Member to time out').setRequired(true))
-        .addStringOption((option) => option.setName('duration').setDescription('e.g. 10m, 2h, 1d').setRequired(true))
-        .addStringOption((option) => option.setName('reason').setDescription('Reason recorded in the mod log').setRequired(true)),
+        .addUserOption((option) =>
+          option.setName('user').setDescription('Member to time out').setRequired(true),
+        )
+        .addStringOption((option) =>
+          option.setName('duration').setDescription('e.g. 10m, 2h, 1d').setRequired(true),
+        )
+        .addStringOption((option) =>
+          option
+            .setName('reason')
+            .setDescription('Reason recorded in the mod log')
+            .setRequired(true),
+        ),
     )
     .addSubcommand((sub) =>
       sub
         .setName('remove')
         .setDescription('Removes a timeout.')
-        .addUserOption((option) => option.setName('user').setDescription('Member').setRequired(true))
-        .addStringOption((option) => option.setName('reason').setDescription('Reason recorded in the mod log')),
+        .addUserOption((option) =>
+          option.setName('user').setDescription('Member').setRequired(true),
+        )
+        .addStringOption((option) =>
+          option.setName('reason').setDescription('Reason recorded in the mod log'),
+        ),
     ),
   description: 'Times a member out, or removes their timeout.',
   staffOnly: true,
@@ -107,8 +144,10 @@ const timeout = defineCommand({
 
     if (sub === 'add') {
       const ms = parseDuration(ctx.interaction.options.getString('duration', true));
-      if (ms === null) throw new ValidationError('Could not read that duration. Try `10m`, `2h` or `1d`.');
-      if (ms > 28 * 24 * 60 * 60 * 1000) throw new ValidationError('Discord caps timeouts at 28 days.');
+      if (ms === null)
+        throw new ValidationError('Could not read that duration. Try `10m`, `2h` or `1d`.');
+      if (ms > 28 * 24 * 60 * 60 * 1000)
+        throw new ValidationError('Discord caps timeouts at 28 days.');
       const result = await moderation.timeout({
         guild: ctx.guild,
         actor: ctx.member,
@@ -125,8 +164,15 @@ const timeout = defineCommand({
       });
       return;
     }
-    const result = await moderation.removeTimeout({ guild: ctx.guild, actor: ctx.member, target, reason });
-    await ctx.reply({ embeds: [result.success ? successEmbed(result.message) : errorEmbed(result.message)] });
+    const result = await moderation.removeTimeout({
+      guild: ctx.guild,
+      actor: ctx.member,
+      target,
+      reason,
+    });
+    await ctx.reply({
+      embeds: [result.success ? successEmbed(result.message) : errorEmbed(result.message)],
+    });
   },
 });
 
@@ -134,8 +180,12 @@ const warn = defineCommand({
   data: new SlashCommandBuilder()
     .setName('warn')
     .setDescription('Records a formal warning against a member.')
-    .addUserOption((option) => option.setName('user').setDescription('Member to warn').setRequired(true))
-    .addStringOption((option) => option.setName('reason').setDescription('Reason recorded in the mod log').setRequired(true)),
+    .addUserOption((option) =>
+      option.setName('user').setDescription('Member to warn').setRequired(true),
+    )
+    .addStringOption((option) =>
+      option.setName('reason').setDescription('Reason recorded in the mod log').setRequired(true),
+    ),
   description: 'Records a formal warning against a member.',
   staffOnly: true,
   userPermissions: [PERMISSION_BIT.MODERATE_MEMBERS],
@@ -159,7 +209,9 @@ const warnings = defineCommand({
   data: new SlashCommandBuilder()
     .setName('warnings')
     .setDescription('Lists warnings for a member.')
-    .addUserOption((option) => option.setName('user').setDescription('Member to look up').setRequired(true)),
+    .addUserOption((option) =>
+      option.setName('user').setDescription('Member to look up').setRequired(true),
+    ),
   description: 'Lists warnings for a member.',
   staffOnly: true,
   userPermissions: [PERMISSION_BIT.MODERATE_MEMBERS],
@@ -171,7 +223,10 @@ const warnings = defineCommand({
     const lines =
       rows.length === 0
         ? ['_No warnings recorded._']
-        : rows.map((row) => `\`${row.id}\` ${row.createdAt.toISOString().slice(0, 10)} by <@${row.moderatorId}> - ${row.reason}`);
+        : rows.map(
+            (row) =>
+              `\`${row.id}\` ${row.createdAt.toISOString().slice(0, 10)} by <@${row.moderatorId}> - ${row.reason}`,
+          );
     await ctx.reply({
       embeds: [
         {
@@ -187,11 +242,20 @@ const warnings = defineCommand({
 const purge = defineCommand({
   data: new SlashCommandBuilder()
     .setName('purge')
-    .setDescription('Bulk deletes recent messages in this channel (Discord limit: 100, last 14 days).')
-    .addIntegerOption((option) =>
-      option.setName('amount').setDescription('How many messages (1-100)').setMinValue(1).setMaxValue(100).setRequired(true),
+    .setDescription(
+      'Bulk deletes recent messages in this channel (Discord limit: 100, last 14 days).',
     )
-    .addUserOption((option) => option.setName('user').setDescription('Only delete messages from this member')),
+    .addIntegerOption((option) =>
+      option
+        .setName('amount')
+        .setDescription('How many messages (1-100)')
+        .setMinValue(1)
+        .setMaxValue(100)
+        .setRequired(true),
+    )
+    .addUserOption((option) =>
+      option.setName('user').setDescription('Only delete messages from this member'),
+    ),
   description: 'Bulk deletes recent messages in this channel.',
   staffOnly: true,
   userPermissions: [PERMISSION_BIT.MANAGE_MESSAGES],
@@ -204,17 +268,28 @@ const purge = defineCommand({
 
     if (user && ctx.interaction.channel?.isTextBased()) {
       // User-filtered purge uses fetch + individual deletes (bulkDelete cannot filter).
-      const fetched = await ctx.interaction.channel.messages.fetch({ limit: Math.min(100, amount * 2) });
+      const fetched = await ctx.interaction.channel.messages.fetch({
+        limit: Math.min(100, amount * 2),
+      });
       const matching = fetched.filter((message) => message.author.id === user.id).first(amount);
       let deleted = 0;
       for (const message of matching) {
-        await message.delete().then(() => (deleted += 1)).catch(() => undefined);
+        await message
+          .delete()
+          .then(() => (deleted += 1))
+          .catch(() => undefined);
       }
       await ctx.reply({ content: `Deleted ${deleted} message(s) from ${user}.`, ephemeral: true });
       return;
     }
 
-    const result = await moderation.purge(ctx.guild, ctx.interaction.channelId, amount, ctx.interaction.user.id, 'purge command');
+    const result = await moderation.purge(
+      ctx.guild,
+      ctx.interaction.channelId,
+      amount,
+      ctx.interaction.user.id,
+      'purge command',
+    );
     await ctx.reply({ content: result.message, ephemeral: true });
   },
 });
@@ -224,9 +299,16 @@ const slowmode = defineCommand({
     .setName('slowmode')
     .setDescription('Sets the slowmode delay for a channel.')
     .addIntegerOption((option) =>
-      option.setName('seconds').setDescription('Delay in seconds (0 disables)').setMinValue(0).setMaxValue(21600).setRequired(true),
+      option
+        .setName('seconds')
+        .setDescription('Delay in seconds (0 disables)')
+        .setMinValue(0)
+        .setMaxValue(21600)
+        .setRequired(true),
     )
-    .addChannelOption((option) => option.setName('channel').setDescription('Channel (defaults to this one)')),
+    .addChannelOption((option) =>
+      option.setName('channel').setDescription('Channel (defaults to this one)'),
+    ),
   description: 'Sets the slowmode delay for a channel.',
   staffOnly: true,
   userPermissions: [PERMISSION_BIT.MANAGE_CHANNELS],
@@ -254,16 +336,22 @@ const lock = defineCommand({
         .setName('channel')
         .setDescription('Locks or unlocks a single channel.')
         .addStringOption((option) =>
-          option.setName('state').setDescription('Lock or unlock').addChoices({ name: 'lock', value: 'lock' }, { name: 'unlock', value: 'unlock' }).setRequired(true),
+          option
+            .setName('state')
+            .setDescription('Lock or unlock')
+            .addChoices({ name: 'lock', value: 'lock' }, { name: 'unlock', value: 'unlock' })
+            .setRequired(true),
         )
-        .addChannelOption((option) => option.setName('channel').setDescription('Channel (defaults to this one)')),
+        .addChannelOption((option) =>
+          option.setName('channel').setDescription('Channel (defaults to this one)'),
+        ),
     )
     .addSubcommand((sub) =>
-      sub
-        .setName('server')
-        .setDescription('Emergency: locks every text channel for @everyone.'),
+      sub.setName('server').setDescription('Emergency: locks every text channel for @everyone.'),
     )
-    .addSubcommand((sub) => sub.setName('release').setDescription('Releases an emergency server lockdown.')),
+    .addSubcommand((sub) =>
+      sub.setName('release').setDescription('Releases an emergency server lockdown.'),
+    ),
   description: 'Locks or unlocks channels.',
   staffOnly: true,
   userPermissions: [PERMISSION_BIT.MANAGE_CHANNELS],
@@ -276,7 +364,11 @@ const lock = defineCommand({
     if (sub === 'server') {
       const result = await lockdown.lock(ctx.guild, { reason: 'manual lockdown' });
       await ctx.reply({
-        embeds: [successEmbed(`Locked ${result.locked.length} channel(s). ${result.failed.length} failed.`)],
+        embeds: [
+          successEmbed(
+            `Locked ${result.locked.length} channel(s). ${result.failed.length} failed.`,
+          ),
+        ],
       });
       return;
     }
@@ -289,7 +381,13 @@ const lock = defineCommand({
     const moderation = requireService(ctx.context.services.moderation, 'moderation');
     const state = ctx.interaction.options.getString('state', true) === 'lock';
     const channel = ctx.interaction.options.getChannel('channel') ?? ctx.interaction.channel;
-    const message = await moderation.setLocked(ctx.guild, channel!.id, state, ctx.interaction.user.id, 'lock command');
+    const message = await moderation.setLocked(
+      ctx.guild,
+      channel!.id,
+      state,
+      ctx.interaction.user.id,
+      'lock command',
+    );
     await ctx.reply({ content: message, ephemeral: true });
   },
 });
@@ -297,9 +395,11 @@ const lock = defineCommand({
 const nickname = defineCommand({
   data: new SlashCommandBuilder()
     .setName('nickname')
-    .setDescription('Changes or clears a member\'s nickname.')
+    .setDescription("Changes or clears a member's nickname.")
     .addUserOption((option) => option.setName('user').setDescription('Member').setRequired(true))
-    .addStringOption((option) => option.setName('nickname').setDescription('New nickname (leave empty to clear)')),
+    .addStringOption((option) =>
+      option.setName('nickname').setDescription('New nickname (leave empty to clear)'),
+    ),
   description: "Changes or clears a member's nickname.",
   staffOnly: true,
   userPermissions: [PERMISSION_BIT.MANAGE_ROLES],
@@ -327,17 +427,23 @@ const role = defineCommand({
       sub
         .setName('add')
         .setDescription('Adds a role.')
-        .addUserOption((option) => option.setName('user').setDescription('Member').setRequired(true))
+        .addUserOption((option) =>
+          option.setName('user').setDescription('Member').setRequired(true),
+        )
         .addRoleOption((option) => option.setName('role').setDescription('Role').setRequired(true)),
     )
     .addSubcommand((sub) =>
       sub
         .setName('remove')
         .setDescription('Removes a role.')
-        .addUserOption((option) => option.setName('user').setDescription('Member').setRequired(true))
+        .addUserOption((option) =>
+          option.setName('user').setDescription('Member').setRequired(true),
+        )
         .addRoleOption((option) => option.setName('role').setDescription('Role').setRequired(true)),
     )
-    .addSubcommand((sub) => sub.setName('list').setDescription('Lists this server\'s roles and member counts.')),
+    .addSubcommand((sub) =>
+      sub.setName('list').setDescription("Lists this server's roles and member counts."),
+    ),
   description: 'Manages member roles.',
   staffOnly: true,
   userPermissions: [PERMISSION_BIT.MANAGE_ROLES],
@@ -351,7 +457,13 @@ const role = defineCommand({
         .first(25)
         .map((entry) => `${entry} - ${entry.members.size} member(s)`);
       await ctx.reply({
-        embeds: [{ title: 'Roles', description: roles.join('\n').slice(0, 4000) || '_No roles._', color: 0x5865f2 }],
+        embeds: [
+          {
+            title: 'Roles',
+            description: roles.join('\n').slice(0, 4000) || '_No roles._',
+            color: 0x5865f2,
+          },
+        ],
       });
       return;
     }
@@ -361,8 +473,20 @@ const role = defineCommand({
     const selected = ctx.interaction.options.getRole('role', true);
     const message =
       sub === 'add'
-        ? await moderation.addRole(ctx.guild, target, selected.id, ctx.interaction.user.id, 'role add command')
-        : await moderation.removeRole(ctx.guild, target, selected.id, ctx.interaction.user.id, 'role remove command');
+        ? await moderation.addRole(
+            ctx.guild,
+            target,
+            selected.id,
+            ctx.interaction.user.id,
+            'role add command',
+          )
+        : await moderation.removeRole(
+            ctx.guild,
+            target,
+            selected.id,
+            ctx.interaction.user.id,
+            'role remove command',
+          );
     await ctx.reply({ content: message, ephemeral: true });
   },
 });
@@ -372,20 +496,28 @@ const cases = defineCommand({
     .setName('cases')
     .setDescription('Shows moderation history.')
     .addSubcommand((sub) =>
-      sub.setName('user').setDescription('History for a member.').addUserOption((option) =>
-        option.setName('user').setDescription('Member').setRequired(true),
-      ),
+      sub
+        .setName('user')
+        .setDescription('History for a member.')
+        .addUserOption((option) =>
+          option.setName('user').setDescription('Member').setRequired(true),
+        ),
     )
     .addSubcommand((sub) =>
-      sub.setName('moderator').setDescription('Actions taken by a moderator.').addUserOption((option) =>
-        option.setName('user').setDescription('Moderator').setRequired(true),
-      ),
+      sub
+        .setName('moderator')
+        .setDescription('Actions taken by a moderator.')
+        .addUserOption((option) =>
+          option.setName('user').setDescription('Moderator').setRequired(true),
+        ),
     )
     .addSubcommand((sub) =>
       sub
         .setName('revoke')
         .setDescription('Marks a case as revoked.')
-        .addIntegerOption((option) => option.setName('case').setDescription('Case number').setRequired(true)),
+        .addIntegerOption((option) =>
+          option.setName('case').setDescription('Case number').setRequired(true),
+        ),
     ),
   description: 'Shows and manages moderation history.',
   staffOnly: true,
@@ -399,7 +531,11 @@ const cases = defineCommand({
       const caseNumber = ctx.interaction.options.getInteger('case', true);
       const ok = await repos.moderation.revokeCase(ctx.guild.id, caseNumber);
       await ctx.reply({
-        embeds: [ok ? successEmbed(`Case #${caseNumber} marked revoked.`) : errorEmbed('No such case, or it is already revoked.')],
+        embeds: [
+          ok
+            ? successEmbed(`Case #${caseNumber} marked revoked.`)
+            : errorEmbed('No such case, or it is already revoked.'),
+        ],
       });
       return;
     }
@@ -417,9 +553,28 @@ const cases = defineCommand({
               `#${row.caseNumber} **${row.type}** ${row.createdAt.toISOString().slice(0, 10)} - ${row.reason}${row.revoked ? ' _(revoked)_' : ''}`,
           );
     await ctx.reply({
-      embeds: [{ title: `Cases (${rows.length})`, description: lines.join('\n').slice(0, 4000), color: 0x5865f2 }],
+      embeds: [
+        {
+          title: `Cases (${rows.length})`,
+          description: lines.join('\n').slice(0, 4000),
+          color: 0x5865f2,
+        },
+      ],
     });
   },
 });
 
-export default [ban, unban, kick, timeout, warn, warnings, purge, slowmode, lock, nickname, role, cases];
+export default [
+  ban,
+  unban,
+  kick,
+  timeout,
+  warn,
+  warnings,
+  purge,
+  slowmode,
+  lock,
+  nickname,
+  role,
+  cases,
+];

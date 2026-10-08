@@ -6,8 +6,8 @@ export default function PrivacyPage(): JSX.Element {
       <h1>Privacy</h1>
       <div className="card">
         <p>
-          Dcbot is self-hosted. The data below is stored in <em>your</em> PostgreSQL database; nothing is sent to any
-          third party except Discord&apos;s own API.
+          Dcbot is self-hosted. The data below is stored in <em>your</em> PostgreSQL database;
+          nothing is sent to any third party except Discord&apos;s own API.
         </p>
         <h3>What is stored</h3>
         <ul>
@@ -18,14 +18,21 @@ export default function PrivacyPage(): JSX.Element {
         </ul>
         <h3>What is not stored</h3>
         <ul>
-          <li>Plaintext OAuth access or refresh tokens - the session cookie is encrypted and the database holds hashes.</li>
+          <li>
+            Plaintext OAuth access or refresh tokens - the session cookie is encrypted and the
+            database holds hashes.
+          </li>
           <li>Client IP addresses - audit rows store a SHA-256 hash only.</li>
-          <li>Message content beyond what a configured feature needs (AutoMod evaluation, ticket transcripts, edit logs).</li>
+          <li>
+            Message content beyond what a configured feature needs (AutoMod evaluation, ticket
+            transcripts, edit logs).
+          </li>
         </ul>
         <h3>Retention</h3>
         <p>
-          Security events, audit rows and pin/tag logs older than the configured retention window (default 90 days) are
-          deleted by the housekeeping job. You can prune sooner with <code>prune_old_rows(days)</code> in the database.
+          Security events, audit rows and pin/tag logs older than the configured retention window
+          (default 90 days) are deleted by the housekeeping job. You can prune sooner with{' '}
+          <code>prune_old_rows(days)</code> in the database.
         </p>
       </div>
     </div>

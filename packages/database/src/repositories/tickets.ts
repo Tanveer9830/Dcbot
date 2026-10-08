@@ -16,7 +16,13 @@ export class TicketRepository {
        VALUES ($1, $2, $3, $4, $5)
        ON CONFLICT (guild_id, channel_id) DO UPDATE SET status = 'open', closed_at = NULL
        RETURNING *`,
-      [params.guildId, params.channelId, params.openerId, params.category ?? null, params.reason ?? null],
+      [
+        params.guildId,
+        params.channelId,
+        params.openerId,
+        params.category ?? null,
+        params.reason ?? null,
+      ],
     );
     return mapTicket(result.rows[0]!);
   }
@@ -119,9 +125,9 @@ export class TicketRepository {
    * Transcript rows for a ticket. The caller MUST have verified the requester is
    * the opener, a claimed staff member, or a bot owner before calling this.
    */
-  async transcript(ticketId: number): Promise<
-    Array<{ authorId: string; authorIsBot: boolean; content: string; createdAt: Date }>
-  > {
+  async transcript(
+    ticketId: number,
+  ): Promise<Array<{ authorId: string; authorIsBot: boolean; content: string; createdAt: Date }>> {
     const result = await this.db.query<Record<string, unknown>>(
       'SELECT * FROM ticket_messages WHERE ticket_id = $1 ORDER BY created_at, id',
       [ticketId],

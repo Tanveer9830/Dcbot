@@ -18,7 +18,11 @@ function command(name: string, overrides: Partial<SlashCommand> = {}): SlashComm
 
 const owners = new OwnerPolicy({ raw: OWNER });
 
-function authorize(registry: CommandRegistry, cmd: SlashCommand, overrides: Record<string, unknown> = {}) {
+function authorize(
+  registry: CommandRegistry,
+  cmd: SlashCommand,
+  overrides: Record<string, unknown> = {},
+) {
   return registry.authorize({
     command: cmd,
     userId: STRANGER,
@@ -64,7 +68,10 @@ describe('CommandRegistry', () => {
       clientPermissions: [PERMISSION_BIT.BAN_MEMBERS],
     });
 
-    const missing = authorize(registry, cmd, { clientPermissions: 0n, memberPermissions: PERMISSION_BIT.BAN_MEMBERS });
+    const missing = authorize(registry, cmd, {
+      clientPermissions: 0n,
+      memberPermissions: PERMISSION_BIT.BAN_MEMBERS,
+    });
     expect(missing?.message).toMatch(/bot is missing/);
 
     const userMissing = authorize(registry, cmd, {
@@ -87,9 +94,7 @@ describe('CommandRegistry', () => {
     expect(authorize(registry, cmd)).not.toBeNull();
     expect(authorize(registry, cmd, { memberPermissions: PERMISSION_BIT.MANAGE_GUILD })).toBeNull();
     expect(authorize(registry, cmd, { memberPermissions: PERMISSION_BIT.BAN_MEMBERS })).toBeNull();
-    expect(
-      authorize(registry, cmd, { memberRoleIds: ['111'], staffRoleIds: ['111'] }),
-    ).toBeNull();
+    expect(authorize(registry, cmd, { memberRoleIds: ['111'], staffRoleIds: ['111'] })).toBeNull();
     expect(authorize(registry, cmd, { trustedUserIds: [STRANGER] })).toBeNull();
     expect(authorize(registry, cmd, { trustedUserIds: ['someone-else'] })).not.toBeNull();
   });
@@ -97,7 +102,9 @@ describe('CommandRegistry', () => {
   it('names the missing permissions in human terms', () => {
     const registry = new CommandRegistry(new CooldownManager());
     const cmd = command('lock', { clientPermissions: [PERMISSION_BIT.MANAGE_CHANNELS] });
-    expect(authorize(registry, cmd, { clientPermissions: 0n })?.message).toContain('Manage Channels');
+    expect(authorize(registry, cmd, { clientPermissions: 0n })?.message).toContain(
+      'Manage Channels',
+    );
   });
 
   it('applies the cooldown only after the first successful run', () => {

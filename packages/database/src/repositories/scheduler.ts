@@ -54,7 +54,10 @@ export class SchedulerRepository {
   }
 
   async fail(id: number, error: string): Promise<void> {
-    await this.db.query('UPDATE scheduled_tasks SET last_error = $2 WHERE id = $1', [id, error.slice(0, 500)]);
+    await this.db.query('UPDATE scheduled_tasks SET last_error = $2 WHERE id = $1', [
+      id,
+      error.slice(0, 500),
+    ]);
   }
 
   async pending(limit = 50): Promise<ScheduledTask[]> {

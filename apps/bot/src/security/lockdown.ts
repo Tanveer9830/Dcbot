@@ -1,4 +1,10 @@
-import { ChannelType, PermissionFlagsBits, type Guild, type NewsChannel, type TextChannel } from 'discord.js';
+import {
+  ChannelType,
+  PermissionFlagsBits,
+  type Guild,
+  type NewsChannel,
+  type TextChannel,
+} from 'discord.js';
 
 /** Channels that carry per-channel permission overwrites. */
 type LockableChannel = TextChannel | NewsChannel;
@@ -31,14 +37,19 @@ export class LockdownManager {
       .map((key) => key.split(':')[1]!);
   }
 
-  async lock(guild: Guild, options: { channelIds?: string[]; reason: string }): Promise<LockdownResult> {
+  async lock(
+    guild: Guild,
+    options: { channelIds?: string[]; reason: string },
+  ): Promise<LockdownResult> {
     const result: LockdownResult = { locked: [], failed: [] };
     const channels = options.channelIds?.length
       ? options.channelIds
           .map((id) => guild.channels.cache.get(id))
           .filter((channel): channel is LockableChannel => Boolean(channel))
       : guild.channels.cache.filter(
-          (channel) => channel.type === ChannelType.GuildText || channel.type === ChannelType.GuildAnnouncement,
+          (channel) =>
+            channel.type === ChannelType.GuildText ||
+            channel.type === ChannelType.GuildAnnouncement,
         );
 
     for (const channel of Array.from(channels as Iterable<LockableChannel>)) {
@@ -85,13 +96,19 @@ export class LockdownManager {
       }
       try {
         await channel.permissionOverwrites.edit(guild.roles.everyone.id, {
-          SendMessages: (state.deny & PermissionFlagsBits.SendMessages) === PermissionFlagsBits.SendMessages ? false : null,
+          SendMessages:
+            (state.deny & PermissionFlagsBits.SendMessages) === PermissionFlagsBits.SendMessages
+              ? false
+              : null,
           SendMessagesInThreads:
-            (state.deny & PermissionFlagsBits.SendMessagesInThreads) === PermissionFlagsBits.SendMessagesInThreads
+            (state.deny & PermissionFlagsBits.SendMessagesInThreads) ===
+            PermissionFlagsBits.SendMessagesInThreads
               ? false
               : null,
           AddReactions:
-            (state.deny & PermissionFlagsBits.AddReactions) === PermissionFlagsBits.AddReactions ? false : null,
+            (state.deny & PermissionFlagsBits.AddReactions) === PermissionFlagsBits.AddReactions
+              ? false
+              : null,
         });
         result.locked.push(channelId);
       } catch (error) {

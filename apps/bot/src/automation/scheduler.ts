@@ -33,11 +33,12 @@ export function startBackgroundJobs(ctx: BotContext): JobHandle {
   every('giveaways', 30_000, async () => {
     const service = ctx.services.giveaways;
     if (!service) return;
-    const finished = await service.sweepDue((guildId) =>
-      // The client is attached at bootstrap; without it there is nothing to announce to.
-      (ctx as BotContext & { client?: { guilds: { cache: { get: (id: string) => unknown } } } }).client?.guilds.cache.get(
-        guildId,
-      ) as never,
+    const finished = await service.sweepDue(
+      (guildId) =>
+        // The client is attached at bootstrap; without it there is nothing to announce to.
+        (
+          ctx as BotContext & { client?: { guilds: { cache: { get: (id: string) => unknown } } } }
+        ).client?.guilds.cache.get(guildId) as never,
     );
     if (finished > 0) logger.info('giveaways finished', { count: finished });
   });
@@ -46,8 +47,13 @@ export function startBackgroundJobs(ctx: BotContext): JobHandle {
   every('reminders', 20_000, async () => {
     const repos = ctx.repos;
     if (!repos) return;
-    const client = (ctx as BotContext & { client?: { channels: { cache: { get: (id: string) => { send: (o: unknown) => Promise<unknown> } } } } })
-      .client;
+    const client = (
+      ctx as BotContext & {
+        client?: {
+          channels: { cache: { get: (id: string) => { send: (o: unknown) => Promise<unknown> } } };
+        };
+      }
+    ).client;
     const due = await repos.community.dueReminders();
     for (const reminder of due) {
       const channel = client?.channels.cache.get(reminder.channelId);

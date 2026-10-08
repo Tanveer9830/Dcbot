@@ -23,7 +23,9 @@ export function GET(): NextResponse {
     prompt: 'consent',
   });
 
-  const response = NextResponse.redirect(`https://discord.com/oauth2/authorize?${params.toString()}`);
+  const response = NextResponse.redirect(
+    `https://discord.com/oauth2/authorize?${params.toString()}`,
+  );
   response.cookies.set(STATE_COOKIE, state, {
     httpOnly: true,
     sameSite: 'lax',

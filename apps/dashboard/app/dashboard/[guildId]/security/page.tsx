@@ -4,7 +4,11 @@ import { StatCard } from '../../../../components/StatCard';
 
 export const dynamic = 'force-dynamic';
 
-export default async function SecurityPage({ params }: { params: { guildId: string } }): Promise<JSX.Element> {
+export default async function SecurityPage({
+  params,
+}: {
+  params: { guildId: string };
+}): Promise<JSX.Element> {
   const context = await loadGuildPage(params.guildId);
   const [settings, events, trustedUsers, trustedRoles] = await Promise.all([
     context.repos.security.getSettings(context.guildId),
@@ -34,22 +38,89 @@ export default async function SecurityPage({ params }: { params: { guildId: stri
         guildId={context.guildId}
         group="security"
         fields={[
-          { key: 'antiNukeEnabled', label: 'Anti-nuke', type: 'boolean', value: settings.antiNukeEnabled },
-          { key: 'antiRaidEnabled', label: 'Anti-raid', type: 'boolean', value: settings.antiRaidEnabled },
-          { key: 'antiSpamEnabled', label: 'Anti-spam', type: 'boolean', value: settings.antiSpamEnabled },
-          { key: 'lockdownOnTrigger', label: 'Auto-lockdown on trigger', type: 'boolean', value: settings.lockdownOnTrigger },
-          { key: 'joinThreshold', label: 'Join threshold', type: 'number', value: settings.joinThreshold, min: 1, max: 100 },
-          { key: 'joinWindowMs', label: 'Join window (ms)', type: 'number', value: settings.joinWindowMs, min: 1000, max: 300000 },
-          { key: 'spamThreshold', label: 'Message threshold', type: 'number', value: settings.spamThreshold, min: 2, max: 50 },
-          { key: 'spamWindowMs', label: 'Message window (ms)', type: 'number', value: settings.spamWindowMs, min: 1000, max: 120000 },
-          { key: 'mentionThreshold', label: 'Mention threshold', type: 'number', value: settings.mentionThreshold, min: 1, max: 100 },
-          { key: 'minAccountAgeDays', label: 'Minimum account age (days)', type: 'number', value: settings.minAccountAgeDays, min: 0, max: 365 },
-          { key: 'alertChannelId', label: 'Alert channel ID', type: 'text', value: settings.alertChannelId ?? '' },
+          {
+            key: 'antiNukeEnabled',
+            label: 'Anti-nuke',
+            type: 'boolean',
+            value: settings.antiNukeEnabled,
+          },
+          {
+            key: 'antiRaidEnabled',
+            label: 'Anti-raid',
+            type: 'boolean',
+            value: settings.antiRaidEnabled,
+          },
+          {
+            key: 'antiSpamEnabled',
+            label: 'Anti-spam',
+            type: 'boolean',
+            value: settings.antiSpamEnabled,
+          },
+          {
+            key: 'lockdownOnTrigger',
+            label: 'Auto-lockdown on trigger',
+            type: 'boolean',
+            value: settings.lockdownOnTrigger,
+          },
+          {
+            key: 'joinThreshold',
+            label: 'Join threshold',
+            type: 'number',
+            value: settings.joinThreshold,
+            min: 1,
+            max: 100,
+          },
+          {
+            key: 'joinWindowMs',
+            label: 'Join window (ms)',
+            type: 'number',
+            value: settings.joinWindowMs,
+            min: 1000,
+            max: 300000,
+          },
+          {
+            key: 'spamThreshold',
+            label: 'Message threshold',
+            type: 'number',
+            value: settings.spamThreshold,
+            min: 2,
+            max: 50,
+          },
+          {
+            key: 'spamWindowMs',
+            label: 'Message window (ms)',
+            type: 'number',
+            value: settings.spamWindowMs,
+            min: 1000,
+            max: 120000,
+          },
+          {
+            key: 'mentionThreshold',
+            label: 'Mention threshold',
+            type: 'number',
+            value: settings.mentionThreshold,
+            min: 1,
+            max: 100,
+          },
+          {
+            key: 'minAccountAgeDays',
+            label: 'Minimum account age (days)',
+            type: 'number',
+            value: settings.minAccountAgeDays,
+            min: 0,
+            max: 365,
+          },
+          {
+            key: 'alertChannelId',
+            label: 'Alert channel ID',
+            type: 'text',
+            value: settings.alertChannelId ?? '',
+          },
         ]}
       />
       <p className="muted" style={{ marginTop: 10 }}>
-        Trusted users and roles are managed with <code>/security trust</code> in Discord; that path records who granted
-        the exemption.
+        Trusted users and roles are managed with <code>/security trust</code> in Discord; that path
+        records who granted the exemption.
       </p>
 
       <div className="card" style={{ marginTop: 16 }}>
@@ -73,7 +144,9 @@ export default async function SecurityPage({ params }: { params: { guildId: stri
                   <td>{event.createdAt.toISOString().slice(0, 16).replace('T', ' ')}</td>
                   <td>{event.type}</td>
                   <td>
-                    <span className={`pill ${event.severity === 'critical' || event.severity === 'high' ? 'pill-bad' : 'pill-warn'}`}>
+                    <span
+                      className={`pill ${event.severity === 'critical' || event.severity === 'high' ? 'pill-bad' : 'pill-warn'}`}
+                    >
                       {event.severity}
                     </span>
                   </td>

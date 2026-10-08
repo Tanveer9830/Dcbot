@@ -31,7 +31,10 @@ export async function POST(
 
   const repos = getRepos();
   if (!repos) {
-    return NextResponse.json({ error: 'The dashboard has no database connection.' }, { status: 503 });
+    return NextResponse.json(
+      { error: 'The dashboard has no database connection.' },
+      { status: 503 },
+    );
   }
 
   let raw: unknown;

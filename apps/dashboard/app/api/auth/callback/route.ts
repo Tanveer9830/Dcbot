@@ -19,14 +19,21 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   const storedState = request.cookies.get(STATE_COOKIE)?.value;
 
   if (!code) {
-    return NextResponse.redirect(new URL('/login?error=no_code', config.DASHBOARD_URL ?? request.nextUrl.origin));
+    return NextResponse.redirect(
+      new URL('/login?error=no_code', config.DASHBOARD_URL ?? request.nextUrl.origin),
+    );
   }
   // CSRF protection: the state we issued must match the one Discord echoed.
   if (!state || !storedState || state !== storedState) {
-    return NextResponse.redirect(new URL('/login?error=state_mismatch', config.DASHBOARD_URL ?? request.nextUrl.origin));
+    return NextResponse.redirect(
+      new URL('/login?error=state_mismatch', config.DASHBOARD_URL ?? request.nextUrl.origin),
+    );
   }
   if (!config.DISCORD_CLIENT_SECRET || !config.DISCORD_REDIRECT_URI) {
-    return NextResponse.json({ error: 'OAuth2 is not configured on this server.' }, { status: 500 });
+    return NextResponse.json(
+      { error: 'OAuth2 is not configured on this server.' },
+      { status: 500 },
+    );
   }
 
   const body = new URLSearchParams({
@@ -44,7 +51,9 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     cache: 'no-store',
   });
   if (!tokenResponse.ok) {
-    return NextResponse.redirect(new URL('/login?error=token_exchange', config.DASHBOARD_URL ?? request.nextUrl.origin));
+    return NextResponse.redirect(
+      new URL('/login?error=token_exchange', config.DASHBOARD_URL ?? request.nextUrl.origin),
+    );
   }
   const tokens = (await tokenResponse.json()) as TokenResponse;
 
@@ -52,7 +61,9 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
     user = await currentUser(tokens.access_token);
   } catch {
-    return NextResponse.redirect(new URL('/login?error=user_fetch', config.DASHBOARD_URL ?? request.nextUrl.origin));
+    return NextResponse.redirect(
+      new URL('/login?error=user_fetch', config.DASHBOARD_URL ?? request.nextUrl.origin),
+    );
   }
 
   const sessionToken = await signSession({
@@ -65,8 +76,8 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   });
 
   // Record the login with hashed tokens only.
-  await getRepos()?.sessions
-    .create({
+  await getRepos()
+    ?.sessions.create({
       id: generateState(),
       userId: user.id,
       username: user.username,
@@ -78,9 +89,10 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     })
     .catch(() => undefined);
 
-  const response = NextResponse.redirect(new URL('/dashboard', config.DASHBOARD_URL ?? request.nextUrl.origin));
+  const response = NextResponse.redirect(
+    new URL('/dashboard', config.DASHBOARD_URL ?? request.nextUrl.origin),
+  );
   response.cookies.set(SESSION_COOKIE, sessionToken, sessionCookieOptions());
   response.cookies.delete(STATE_COOKIE);
   return response;
 }
-

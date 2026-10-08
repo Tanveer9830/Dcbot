@@ -80,7 +80,9 @@ export class SessionRepository {
   }
 
   async revokeAllForUser(userId: string): Promise<number> {
-    const result = await this.db.query('DELETE FROM dashboard_sessions WHERE user_id = $1', [userId]);
+    const result = await this.db.query('DELETE FROM dashboard_sessions WHERE user_id = $1', [
+      userId,
+    ]);
     return result.rowCount ?? 0;
   }
 

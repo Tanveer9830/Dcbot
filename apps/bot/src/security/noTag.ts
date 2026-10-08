@@ -56,7 +56,13 @@ export function evaluateNoTag(params: {
   if (!match) return none;
 
   if (params.offenderIsBot) {
-    return { protected: true, matchedUserId: match.userId, mode: 'log', exempt: true, reason: 'author is a bot' };
+    return {
+      protected: true,
+      matchedUserId: match.userId,
+      mode: 'log',
+      exempt: true,
+      reason: 'author is a bot',
+    };
   }
   if (params.offenderIsStaff) {
     return {
@@ -111,7 +117,9 @@ export class NoTagService {
     if (params.actorIsOwner) return;
     if (params.actorId === params.targetUserId) return;
     if (params.actorIsStaff) return;
-    throw new AuthorizationError('You can only manage your own mention protection unless you are server staff.');
+    throw new AuthorizationError(
+      'You can only manage your own mention protection unless you are server staff.',
+    );
   }
 
   async listProtected(guildId: string) {

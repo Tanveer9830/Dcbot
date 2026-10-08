@@ -124,7 +124,10 @@ export class TrackQueue {
       upcoming: [...this.upcoming],
       loop: this.loop,
       length: this.upcoming.length,
-      totalDurationMs: this.upcoming.reduce((total, item) => total + (item.track.info.isStream ? 0 : item.track.info.length), 0),
+      totalDurationMs: this.upcoming.reduce(
+        (total, item) => total + (item.track.info.isStream ? 0 : item.track.info.length),
+        0,
+      ),
     };
   }
 

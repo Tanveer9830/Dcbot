@@ -4,3 +4,7 @@ dist
 coverage
 package-lock.json
 database/migrations
+
+# Generated from the live registry by `npm run docs:commands`; CI checks that the
+# committed file matches the generator output byte for byte.
+docs/COMMANDS.md

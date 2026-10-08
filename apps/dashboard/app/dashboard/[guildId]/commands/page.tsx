@@ -2,7 +2,11 @@ import { loadGuildPage } from '../../../../lib/guildPage';
 
 export const dynamic = 'force-dynamic';
 
-export default async function CommandsPage({ params }: { params: { guildId: string } }): Promise<JSX.Element> {
+export default async function CommandsPage({
+  params,
+}: {
+  params: { guildId: string };
+}): Promise<JSX.Element> {
   const context = await loadGuildPage(params.guildId);
   const guildCommands = await context.repos.customCommands.listGuild(context.guildId);
   // Global commands are listed (names only) so admins can see what exists, but
@@ -17,7 +21,8 @@ export default async function CommandsPage({ params }: { params: { guildId: stri
         <h3>This server ({guildCommands.length})</h3>
         {guildCommands.length === 0 ? (
           <div className="empty">
-            No server commands yet. Create one in Discord with <code>/config</code> or the guild command tools.
+            No server commands yet. Create one in Discord with <code>/config</code> or the guild
+            command tools.
           </div>
         ) : (
           <table>
@@ -48,9 +53,9 @@ export default async function CommandsPage({ params }: { params: { guildId: stri
       <div className="card" style={{ marginTop: 16 }}>
         <h3>Global commands ({globalCommands.length})</h3>
         <div className="alert" style={{ borderColor: 'var(--border)', color: 'var(--muted)' }}>
-          Global commands are managed exclusively by the configured bot owners through <code>/globalcommand</code> in
-          Discord. Server administrators cannot create, edit, publish or delete them - including through this
-          dashboard, which has no write path for them.
+          Global commands are managed exclusively by the configured bot owners through{' '}
+          <code>/globalcommand</code> in Discord. Server administrators cannot create, edit, publish
+          or delete them - including through this dashboard, which has no write path for them.
         </div>
         {globalCommands.length === 0 ? (
           <div className="empty">No global commands published.</div>

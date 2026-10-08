@@ -2,7 +2,11 @@ import { loadGuildPage } from '../../../../lib/guildPage';
 
 export const dynamic = 'force-dynamic';
 
-export default async function AuditPage({ params }: { params: { guildId: string } }): Promise<JSX.Element> {
+export default async function AuditPage({
+  params,
+}: {
+  params: { guildId: string };
+}): Promise<JSX.Element> {
   const context = await loadGuildPage(params.guildId);
   const entries = await context.repos.audit.list({ guildId: context.guildId, limit: 100 });
 
@@ -10,8 +14,8 @@ export default async function AuditPage({ params }: { params: { guildId: string 
     <div>
       <h2>Audit log</h2>
       <p className="muted">
-        Every privileged change made through the bot or this dashboard. Secrets are stripped before storage and IPs are
-        stored only as SHA-256 hashes.
+        Every privileged change made through the bot or this dashboard. Secrets are stripped before
+        storage and IPs are stored only as SHA-256 hashes.
       </p>
       {entries.length === 0 ? (
         <div className="empty">Nothing recorded yet.</div>

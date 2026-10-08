@@ -10,7 +10,10 @@ let commands: SlashCommand[] = [];
 let registry: CommandRegistry;
 
 beforeAll(async () => {
-  const loaded = await loadCommands(path.resolve('apps/bot/src/commands'), new Logger({ level: 'error' }));
+  const loaded = await loadCommands(
+    path.resolve('apps/bot/src/commands'),
+    new Logger({ level: 'error' }),
+  );
   expect(loaded.skipped, `skipped files: ${loaded.skipped.join(', ')}`).toEqual([]);
   commands = loaded.commands;
   registry = new CommandRegistry(new CooldownManager());
@@ -40,12 +43,17 @@ describe('command catalog', () => {
   });
 
   it('restricts exactly the documented owner-only commands', () => {
-    const ownerOnly = commands.filter((command) => command.ownerOnly).map(commandName).sort();
+    const ownerOnly = commands
+      .filter((command) => command.ownerOnly)
+      .map(commandName)
+      .sort();
     expect(ownerOnly).toEqual(['branding', 'globalcommand', 'guilds', 'health']);
   });
 
   it('keeps owner-only and staff-only mutually exclusive', () => {
-    const both = commands.filter((command) => command.ownerOnly && command.staffOnly).map(commandName);
+    const both = commands
+      .filter((command) => command.ownerOnly && command.staffOnly)
+      .map(commandName);
     expect(both).toEqual([]);
   });
 

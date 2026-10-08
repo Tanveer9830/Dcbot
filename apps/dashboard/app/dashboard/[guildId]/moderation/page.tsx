@@ -3,7 +3,11 @@ import { SettingsForm } from '../../../../components/SettingsForm';
 
 export const dynamic = 'force-dynamic';
 
-export default async function ModerationPage({ params }: { params: { guildId: string } }): Promise<JSX.Element> {
+export default async function ModerationPage({
+  params,
+}: {
+  params: { guildId: string };
+}): Promise<JSX.Element> {
   const context = await loadGuildPage(params.guildId);
   const config = (context.settings.moderation ?? {}) as {
     dmOnAction?: boolean;
@@ -18,14 +22,19 @@ export default async function ModerationPage({ params }: { params: { guildId: st
     <div>
       <h2>Moderation</h2>
       <p className="muted">
-        These settings change how the bot records and escalates actions. Destructive actions always validate role
-        hierarchy before contacting Discord.
+        These settings change how the bot records and escalates actions. Destructive actions always
+        validate role hierarchy before contacting Discord.
       </p>
       <SettingsForm
         guildId={context.guildId}
         group="moderation"
         fields={[
-          { key: 'dmOnAction', label: 'DM the member on action', type: 'boolean', value: config.dmOnAction ?? true },
+          {
+            key: 'dmOnAction',
+            label: 'DM the member on action',
+            type: 'boolean',
+            value: config.dmOnAction ?? true,
+          },
           {
             key: 'logChannelId',
             label: 'Moderation log channel ID',
@@ -80,8 +89,12 @@ export default async function ModerationPage({ params }: { params: { guildId: st
           </table>
         )}
       </div>
-      <div className="alert" style={{ marginTop: 16, borderColor: 'var(--border)', color: 'var(--muted)' }}>
-        Escalation rules ({config.escalation?.length ?? 0} configured) are managed with <code>/security</code> and
+      <div
+        className="alert"
+        style={{ marginTop: 16, borderColor: 'var(--border)', color: 'var(--muted)' }}
+      >
+        Escalation rules ({config.escalation?.length ?? 0} configured) are managed with{' '}
+        <code>/security</code> and
         <code>/warn</code> in Discord so staff changes stay in the same audit trail.
       </div>
     </div>

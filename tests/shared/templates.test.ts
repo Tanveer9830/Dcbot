@@ -11,9 +11,9 @@ import {
 
 describe('template rendering', () => {
   it('substitutes allowlisted variables', () => {
-    expect(renderTemplate('Hi {{user}}, welcome to {{guild}}.', { user: 'Ada', guild: 'Lab' })).toBe(
-      'Hi Ada, welcome to Lab.',
-    );
+    expect(
+      renderTemplate('Hi {{user}}, welcome to {{guild}}.', { user: 'Ada', guild: 'Lab' }),
+    ).toBe('Hi Ada, welcome to Lab.');
     expect(renderTemplate('{{ member_count }} members', { member_count: 42 })).toBe('42 members');
   });
 
@@ -42,11 +42,17 @@ describe('template rendering', () => {
 
   it('is not an expression language: code is treated as literal text', () => {
     // There is no eval/Function/vm path, so this must come back verbatim.
-    expect(renderTemplate('process.exit(1) {{user}} 1+1', { user: 'x' })).toBe('process.exit(1) x 1+1');
+    expect(renderTemplate('process.exit(1) {{user}} 1+1', { user: 'x' })).toBe(
+      'process.exit(1) x 1+1',
+    );
   });
 
   it('applies the escaper to values only', () => {
-    const rendered = renderTemplate('**{{user}}**', { user: '*evil*' }, { escape: escapeDiscordMarkdown });
+    const rendered = renderTemplate(
+      '**{{user}}**',
+      { user: '*evil*' },
+      { escape: escapeDiscordMarkdown },
+    );
     expect(rendered).toBe('**\\*evil\\***');
   });
 

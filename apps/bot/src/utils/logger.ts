@@ -11,7 +11,10 @@ export type LogLevel = 'debug' | 'info' | 'warn' | 'error';
 const LEVEL_ORDER: Record<LogLevel, number> = { debug: 10, info: 20, warn: 30, error: 40 };
 
 const SECRET_PATTERNS: Array<{ label: string; pattern: RegExp }> = [
-  { label: 'bot token', pattern: /\b[MNO][A-Za-z\d_-]{23,}\.[A-Za-z\d_-]{6}\.[A-Za-z\d_-]{25,}\b/g },
+  {
+    label: 'bot token',
+    pattern: /\b[MNO][A-Za-z\d_-]{23,}\.[A-Za-z\d_-]{6}\.[A-Za-z\d_-]{25,}\b/g,
+  },
   { label: 'bearer token', pattern: /\bBearer\s+[A-Za-z0-9._~+/-]+=*/gi },
   { label: 'key=value secret', pattern: /\b(token|secret|password|api[_-]?key)\s*[=:]\s*\S+/gi },
   { label: 'connection string', pattern: /\bpostgres(?:ql)?:\/\/[^\s]+/gi },

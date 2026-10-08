@@ -38,7 +38,9 @@ export function registerInteractionHandler(client: Client, ctx: BotContext): voi
       if (interaction.isAutocomplete()) {
         const command = ctx.registry?.get(interaction.commandName);
         if (command && 'autocomplete' in command) {
-          await (command as { autocomplete?: (i: unknown) => Promise<void> }).autocomplete?.(interaction);
+          await (command as { autocomplete?: (i: unknown) => Promise<void> }).autocomplete?.(
+            interaction,
+          );
         }
         return;
       }
@@ -59,14 +61,20 @@ async function handleCommand(
   }
   const command = registry.get(interaction.commandName);
   if (!command) {
-    await interaction.reply({ content: `Unknown command \`${interaction.commandName}\`.`, ephemeral: true });
+    await interaction.reply({
+      content: `Unknown command \`${interaction.commandName}\`.`,
+      ephemeral: true,
+    });
     return;
   }
 
   const isOwner = ctx.owners.isOwner(interaction.user.id);
 
   if ((command.guildOnly ?? true) && !interaction.inGuild()) {
-    await interaction.reply({ content: 'This command only works inside a server.', ephemeral: true });
+    await interaction.reply({
+      content: 'This command only works inside a server.',
+      ephemeral: true,
+    });
     return;
   }
 
@@ -161,9 +169,7 @@ async function runWithTimeout(
   let acknowledged = false;
   const timer = setTimeout(() => {
     acknowledged = true;
-    interaction
-      .deferReply({ flags: MessageFlags.Ephemeral })
-      .catch(() => undefined);
+    interaction.deferReply({ flags: MessageFlags.Ephemeral }).catch(() => undefined);
   }, REPLY_TIMEOUT_MS);
 
   try {
@@ -184,7 +190,8 @@ async function respondWithError(
   const payload = { content: '', embeds: [errorEmbed(describeError(error))], ephemeral: true };
   try {
     if (interaction.isRepliable()) {
-      if (interaction.deferred || interaction.replied) await interaction.editReply(payload as never);
+      if (interaction.deferred || interaction.replied)
+        await interaction.editReply(payload as never);
       else await interaction.reply(payload as never);
     }
   } catch {
@@ -243,7 +250,11 @@ async function handleButton(interaction: ButtonInteraction, ctx: BotContext): Pr
   if (id === 'ticket_claim' && interaction.inCachedGuild()) {
     const tickets = ctx.services.tickets;
     if (!tickets) return;
-    const message = await tickets.claim(interaction.guild, interaction.channelId, interaction.user.id);
+    const message = await tickets.claim(
+      interaction.guild,
+      interaction.channelId,
+      interaction.user.id,
+    );
     await interaction.reply({ content: message });
     return;
   }
@@ -251,14 +262,22 @@ async function handleButton(interaction: ButtonInteraction, ctx: BotContext): Pr
   if (id === 'ticket_close' && interaction.inCachedGuild()) {
     const tickets = ctx.services.tickets;
     if (!tickets) return;
-    await tickets.close({ guild: interaction.guild, channelId: interaction.channelId, closedById: interaction.user.id });
+    await tickets.close({
+      guild: interaction.guild,
+      channelId: interaction.channelId,
+      closedById: interaction.user.id,
+    });
     return;
   }
 
   if (id === 'giveaway_enter' && interaction.inCachedGuild()) {
     const giveaways = ctx.services.giveaways;
     if (!giveaways) return;
-    const result = await giveaways.enter(interaction.guild.id, interaction.message.id, interaction.user.id);
+    const result = await giveaways.enter(
+      interaction.guild.id,
+      interaction.message.id,
+      interaction.user.id,
+    );
     await interaction.reply({
       content: result.entered ? `Entered (${result.total} total).` : 'You are already entered.',
       ephemeral: true,

@@ -46,8 +46,12 @@ describe('security repository', () => {
     expect(await security.trustedUserIds(guild)).toContain(USER);
     expect(await security.trustedRoleIds(guild)).toContain('940000000000000006');
     expect(await security.isTrusted(guild, USER, [])).toBe(true);
-    expect(await security.isTrusted(guild, '940000000000000099', ['940000000000000006'])).toBe(true);
-    expect(await security.isTrusted(guild, '940000000000000099', ['940000000000000098'])).toBe(false);
+    expect(await security.isTrusted(guild, '940000000000000099', ['940000000000000006'])).toBe(
+      true,
+    );
+    expect(await security.isTrusted(guild, '940000000000000099', ['940000000000000098'])).toBe(
+      false,
+    );
 
     expect(await security.removeTrustedUser(guild, USER)).toBe(true);
     expect(await security.removeTrustedUser(guild, USER)).toBe(false);
@@ -64,7 +68,12 @@ describe('security repository', () => {
       detail: { channelDeletes: 4, threshold: 3 },
       actionTaken: 'role_stripped',
     });
-    await security.recordEvent({ guildId: guild, type: 'anti_spam', severity: 'low', actorId: USER });
+    await security.recordEvent({
+      guildId: guild,
+      type: 'anti_spam',
+      severity: 'low',
+      actorId: USER,
+    });
 
     const all = await security.recentEvents(guild, 10);
     expect(all).toHaveLength(2);
@@ -74,15 +83,25 @@ describe('security repository', () => {
     expect(nuke[0]?.actionTaken).toBe('role_stripped');
     expect(nuke[0]?.severity).toBe('critical');
 
-    expect(await security.countEventsSince(guild, 'anti_nuke', new Date(Date.now() - 60_000))).toBe(1);
-    expect(await security.countEventsSince(guild, 'anti_nuke', new Date(Date.now() + 60_000))).toBe(0);
+    expect(await security.countEventsSince(guild, 'anti_nuke', new Date(Date.now() - 60_000))).toBe(
+      1,
+    );
+    expect(await security.countEventsSince(guild, 'anti_nuke', new Date(Date.now() + 60_000))).toBe(
+      0,
+    );
   });
 
   it('protects users from being tagged and counts violations per offender', async () => {
     const guild = '940000000000000008';
     const offender = '940000000000000009';
 
-    await security.protectUser({ guildId: guild, userId: USER, mode: 'delete', setBy: USER, selfSelected: true });
+    await security.protectUser({
+      guildId: guild,
+      userId: USER,
+      mode: 'delete',
+      setBy: USER,
+      selfSelected: true,
+    });
     const protection = await security.isProtected(guild, USER);
     expect(protection.protected).toBe(true);
     expect(protection.mode).toBe('delete');
@@ -106,11 +125,15 @@ describe('security repository', () => {
 
     const violations = await security.noTagViolations(guild, 10);
     expect(violations).toHaveLength(2);
-    expect(await security.violationsByOffender(guild, offender, new Date(Date.now() - 60_000))).toBe(2);
+    expect(
+      await security.violationsByOffender(guild, offender, new Date(Date.now() - 60_000)),
+    ).toBe(2);
 
     // Mode changes overwrite instead of duplicating the row.
     await security.protectUser({ guildId: guild, userId: USER, mode: 'timeout', setBy: MOD });
-    expect((await security.protectedUsers(guild)).filter((row) => row.userId === USER)).toHaveLength(1);
+    expect(
+      (await security.protectedUsers(guild)).filter((row) => row.userId === USER),
+    ).toHaveLength(1);
 
     expect(await security.unprotectUser(guild, USER)).toBe(true);
     expect((await security.isProtected(guild, USER)).protected).toBe(false);
@@ -146,11 +169,10 @@ describe('security repository', () => {
   it('prunes rows outside the retention window and leaves newer ones alone', async () => {
     const guild = '940000000000000015';
     await security.recordEvent({ guildId: guild, type: 'anti_spam', severity: 'low' });
-    await db.query('INSERT INTO security_events (guild_id, type, severity, created_at) VALUES ($1, $2, $3, now() - INTERVAL \'200 days\')', [
-      guild,
-      'anti_spam',
-      'low',
-    ]);
+    await db.query(
+      "INSERT INTO security_events (guild_id, type, severity, created_at) VALUES ($1, $2, $3, now() - INTERVAL '200 days')",
+      [guild, 'anti_spam', 'low'],
+    );
 
     const pruned = await security.pruneOldRows(90);
     expect(pruned.securityEvents).toBe(1);

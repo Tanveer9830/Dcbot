@@ -27,7 +27,11 @@ export const DEFAULT_THRESHOLDS: Thresholds = {
 };
 
 /** Counts how many timestamps fall inside the trailing window. */
-export function countInWindow(timestamps: readonly number[], windowMs: number, now = Date.now()): number {
+export function countInWindow(
+  timestamps: readonly number[],
+  windowMs: number,
+  now = Date.now(),
+): number {
   const cutoff = now - windowMs;
   let count = 0;
   for (const timestamp of timestamps) if (timestamp >= cutoff) count += 1;
@@ -48,13 +52,18 @@ function none(reason: string, value: number, threshold: number): Detection {
 }
 
 /** Anti-raid: too many joins inside the window. */
-export function detectRaid(joinTimestamps: readonly number[], thresholds: Thresholds, now = Date.now()): Detection {
+export function detectRaid(
+  joinTimestamps: readonly number[],
+  thresholds: Thresholds,
+  now = Date.now(),
+): Detection {
   const value = countInWindow(joinTimestamps, thresholds.joinWindowMs, now);
   if (value < thresholds.joinThreshold) {
     return none('join rate within threshold', value, thresholds.joinThreshold);
   }
   const overshoot = value / Math.max(1, thresholds.joinThreshold);
-  const severity: SecuritySeverity = overshoot >= 4 ? 'critical' : overshoot >= 2 ? 'high' : 'medium';
+  const severity: SecuritySeverity =
+    overshoot >= 4 ? 'critical' : overshoot >= 2 ? 'high' : 'medium';
   return {
     triggered: true,
     value,
@@ -86,7 +95,8 @@ export function detectSpam(
 
 /** Anti-mention: mass pings in a single message. */
 export function detectMentionSpam(mentionCount: number, threshold: number): Detection {
-  if (mentionCount < threshold) return none('mention count within threshold', mentionCount, threshold);
+  if (mentionCount < threshold)
+    return none('mention count within threshold', mentionCount, threshold);
   return {
     triggered: true,
     value: mentionCount,
@@ -158,7 +168,8 @@ export function capsRatio(content: string): number {
 }
 
 export function detectCaps(content: string, minLength: number, ratio: number): Detection {
-  if (content.length < minLength) return none('message too short to judge', content.length, minLength);
+  if (content.length < minLength)
+    return none('message too short to judge', content.length, minLength);
   const actual = capsRatio(content);
   if (actual < ratio) return none('caps ratio within threshold', actual, ratio);
   return {
@@ -197,7 +208,11 @@ export function detectRepeat(history: readonly string[], minOccurrences = 3): De
 }
 
 /** Alt-account / freshly-created account detection. */
-export function detectSuspiciousAccount(userId: string, minAccountAgeDays: number, now = Date.now()): Detection {
+export function detectSuspiciousAccount(
+  userId: string,
+  minAccountAgeDays: number,
+  now = Date.now(),
+): Detection {
   if (minAccountAgeDays <= 0) return none('account age checks disabled', 0, 0);
   const minAgeMs = minAccountAgeDays * 86_400_000;
   if (!isYoungAccount(userId, minAgeMs, now)) {

@@ -28,11 +28,15 @@ const timestamp = defineCommand({
   cooldownMs: 3000,
   async execute(ctx) {
     const input = ctx.interaction.options.getString('in', true);
-    const style = (ctx.interaction.options.getString('style') ?? 'R') as 'R' | 't' | 'T' | 'd' | 'D' | 'F';
+    const style = (ctx.interaction.options.getString('style') ?? 'R') as
+      'R' | 't' | 'T' | 'd' | 'D' | 'F';
     const ms = parseDuration(input);
-    if (ms === null) throw new ValidationError('Could not read that duration. Try `30m`, `2h` or `1d`.');
+    if (ms === null)
+      throw new ValidationError('Could not read that duration. Try `30m`, `2h` or `1d`.');
     const when = new Date(Date.now() + ms);
-    await ctx.reply(`${formatDuration(ms)} from now is ${discordTimestamp(when, style)} (\`${when.toISOString()}\`).`);
+    await ctx.reply(
+      `${formatDuration(ms)} from now is ${discordTimestamp(when, style)} (\`${when.toISOString()}\`).`,
+    );
   },
 });
 
@@ -140,7 +144,8 @@ export function safeEvaluate(input: string): number | null {
     const literal = cleaned.slice(start, position);
     if (!literal) throw new ValidationError('Expected a number.');
     const value = Number(literal);
-    if (!Number.isFinite(value)) throw new ValidationError('That expression is not a finite number.');
+    if (!Number.isFinite(value))
+      throw new ValidationError('That expression is not a finite number.');
     return value;
   }
 

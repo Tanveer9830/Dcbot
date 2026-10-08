@@ -17,7 +17,9 @@ const dice = defineCommand({
   data: new SlashCommandBuilder()
     .setName('dice')
     .setDescription('Rolls dice, e.g. 2d6.')
-    .addStringOption((option) => option.setName('roll').setDescription('Format: NdS (default 1d6)')),
+    .addStringOption((option) =>
+      option.setName('roll').setDescription('Format: NdS (default 1d6)'),
+    ),
   description: 'Rolls dice.',
   guildOnly: false,
   requiresDatabase: false,
@@ -42,11 +44,15 @@ const rps = defineCommand({
     .setName('rps')
     .setDescription('Plays rock-paper-scissors against the bot.')
     .addStringOption((option) =>
-      option.setName('choice').setDescription('Your choice').addChoices(
-        { name: 'rock', value: 'rock' },
-        { name: 'paper', value: 'paper' },
-        { name: 'scissors', value: 'scissors' },
-      ).setRequired(true),
+      option
+        .setName('choice')
+        .setDescription('Your choice')
+        .addChoices(
+          { name: 'rock', value: 'rock' },
+          { name: 'paper', value: 'paper' },
+          { name: 'scissors', value: 'scissors' },
+        )
+        .setRequired(true),
     ),
   description: 'Plays rock-paper-scissors against the bot.',
   guildOnly: false,

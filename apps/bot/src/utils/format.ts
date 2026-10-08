@@ -52,7 +52,10 @@ export function formatDuration(ms: number): string {
 }
 
 /** Discord message timestamp formatting. */
-export function discordTimestamp(date: Date, style: 't' | 'T' | 'd' | 'D' | 'R' | 'f' | 'F' = 'R'): string {
+export function discordTimestamp(
+  date: Date,
+  style: 't' | 'T' | 'd' | 'D' | 'R' | 'f' | 'F' = 'R',
+): string {
   return `<t:${Math.floor(date.getTime() / 1000)}:${style}>`;
 }
 

@@ -56,7 +56,11 @@ export class CustomCommandRepository {
     return mapCommand(result.rows[0]!);
   }
 
-  async updateGlobal(name: string, patch: Partial<CustomCommandInput>, actorId: string): Promise<CustomCommand> {
+  async updateGlobal(
+    name: string,
+    patch: Partial<CustomCommandInput>,
+    actorId: string,
+  ): Promise<CustomCommand> {
     this.owners.requireOwner(actorId, 'edit global custom commands');
     const current = await this.getGlobal(name);
     if (!current) throw new ValidationError(`Global command "${name}" does not exist.`);
@@ -94,7 +98,10 @@ export class CustomCommandRepository {
 
   async deleteGlobal(name: string, actorId: string): Promise<boolean> {
     this.owners.requireOwner(actorId, 'delete global custom commands');
-    const result = await this.db.query(`DELETE FROM custom_commands WHERE scope = 'global' AND name = $1`, [name]);
+    const result = await this.db.query(
+      `DELETE FROM custom_commands WHERE scope = 'global' AND name = $1`,
+      [name],
+    );
     return (result.rowCount ?? 0) > 0;
   }
 
@@ -121,7 +128,11 @@ export class CustomCommandRepository {
 
   // --- guild scoped (server admins) -----------------------------------------
 
-  async createGuild(guildId: string, input: CustomCommandInput, actorId: string): Promise<CustomCommand> {
+  async createGuild(
+    guildId: string,
+    input: CustomCommandInput,
+    actorId: string,
+  ): Promise<CustomCommand> {
     const data = validate(input);
     const result = await this.db.query<Record<string, unknown>>(
       `INSERT INTO custom_commands
@@ -173,7 +184,9 @@ function validate(input: CustomCommandInput) {
   const parsed = customCommandSchema.safeParse(input);
   if (!parsed.success) {
     throw new ValidationError(
-      parsed.error.issues.map((issue) => `${issue.path.join('.') || 'command'}: ${issue.message}`).join('; '),
+      parsed.error.issues
+        .map((issue) => `${issue.path.join('.') || 'command'}: ${issue.message}`)
+        .join('; '),
     );
   }
   const text = parsed.data.content ?? '';

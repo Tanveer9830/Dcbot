@@ -40,8 +40,9 @@ export default async function LandingPage(): Promise<JSX.Element> {
       <section className="hero">
         <h1>A self-hosted Discord bot you actually control</h1>
         <p>
-          Dcbot pairs a modular discord.js bot with a Next.js dashboard. Configure moderation, security, tickets,
-          economy and leveling from the browser - every write is re-authorized on the server.
+          Dcbot pairs a modular discord.js bot with a Next.js dashboard. Configure moderation,
+          security, tickets, economy and leveling from the browser - every write is re-authorized on
+          the server.
         </p>
         <div className="row" style={{ justifyContent: 'center' }}>
           {session ? (
@@ -61,8 +62,9 @@ export default async function LandingPage(): Promise<JSX.Element> {
 
       {problems.missing.length > 0 ? (
         <div className="alert">
-          This instance is missing configuration: <code>{problems.missing.join(', ')}</code>. Sign-in and settings
-          writes will not work until these are set. See <code>.env.example</code>.
+          This instance is missing configuration: <code>{problems.missing.join(', ')}</code>.
+          Sign-in and settings writes will not work until these are set. See{' '}
+          <code>.env.example</code>.
         </div>
       ) : null}
 

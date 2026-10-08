@@ -1,12 +1,23 @@
 import { SlashCommandBuilder } from 'discord.js';
-import { defineCommand, getTargetMember, requireService, successEmbed, errorEmbed, ValidationError } from '../helpers.js';
+import {
+  defineCommand,
+  getTargetMember,
+  requireService,
+  successEmbed,
+  errorEmbed,
+  ValidationError,
+} from '../helpers.js';
 import { PERMISSION_BIT } from '@dcbot/shared';
 
 const security = defineCommand({
   data: new SlashCommandBuilder()
     .setName('security')
     .setDescription('Server security configuration and monitoring.')
-    .addSubcommand((sub) => sub.setName('status').setDescription('Shows the current security configuration and recent events.'))
+    .addSubcommand((sub) =>
+      sub
+        .setName('status')
+        .setDescription('Shows the current security configuration and recent events.'),
+    )
     .addSubcommand((sub) =>
       sub
         .setName('trust')
@@ -26,30 +37,65 @@ const security = defineCommand({
       sub
         .setName('thresholds')
         .setDescription('Sets anti-raid and anti-spam thresholds.')
-        .addIntegerOption((option) => option.setName('joins').setDescription('Joins allowed in the window').setMinValue(1).setMaxValue(100))
-        .addIntegerOption((option) => option.setName('join_window_s').setDescription('Window in seconds').setMinValue(1).setMaxValue(300))
-        .addIntegerOption((option) => option.setName('messages').setDescription('Messages allowed in the window').setMinValue(2).setMaxValue(50))
-        .addIntegerOption((option) => option.setName('message_window_s').setDescription('Window in seconds').setMinValue(1).setMaxValue(120)),
+        .addIntegerOption((option) =>
+          option
+            .setName('joins')
+            .setDescription('Joins allowed in the window')
+            .setMinValue(1)
+            .setMaxValue(100),
+        )
+        .addIntegerOption((option) =>
+          option
+            .setName('join_window_s')
+            .setDescription('Window in seconds')
+            .setMinValue(1)
+            .setMaxValue(300),
+        )
+        .addIntegerOption((option) =>
+          option
+            .setName('messages')
+            .setDescription('Messages allowed in the window')
+            .setMinValue(2)
+            .setMaxValue(50),
+        )
+        .addIntegerOption((option) =>
+          option
+            .setName('message_window_s')
+            .setDescription('Window in seconds')
+            .setMinValue(1)
+            .setMaxValue(120),
+        ),
     )
     .addSubcommand((sub) =>
       sub
         .setName('toggle')
         .setDescription('Enables or disables a protection module.')
         .addStringOption((option) =>
-          option.setName('module').setDescription('Module').addChoices(
-            { name: 'anti-nuke', value: 'antiNuke' },
-            { name: 'anti-raid', value: 'antiRaid' },
-            { name: 'anti-spam', value: 'antiSpam' },
-            { name: 'auto-lockdown', value: 'lockdown' },
-          ).setRequired(true),
+          option
+            .setName('module')
+            .setDescription('Module')
+            .addChoices(
+              { name: 'anti-nuke', value: 'antiNuke' },
+              { name: 'anti-raid', value: 'antiRaid' },
+              { name: 'anti-spam', value: 'antiSpam' },
+              { name: 'auto-lockdown', value: 'lockdown' },
+            )
+            .setRequired(true),
         )
-        .addBooleanOption((option) => option.setName('enabled').setDescription('Enabled').setRequired(true)),
+        .addBooleanOption((option) =>
+          option.setName('enabled').setDescription('Enabled').setRequired(true),
+        ),
     )
-    .addSubcommand((sub) => sub.setName('events').setDescription('Shows the most recent security events.'))
     .addSubcommand((sub) =>
-      sub.setName('alerts').setDescription('Sets the channel used for security alerts.').addChannelOption((option) =>
-        option.setName('channel').setDescription('Channel (leave empty to clear)'),
-      ),
+      sub.setName('events').setDescription('Shows the most recent security events.'),
+    )
+    .addSubcommand((sub) =>
+      sub
+        .setName('alerts')
+        .setDescription('Sets the channel used for security alerts.')
+        .addChannelOption((option) =>
+          option.setName('channel').setDescription('Channel (leave empty to clear)'),
+        ),
     ),
   description: 'Server security configuration and monitoring.',
   staffOnly: true,
@@ -71,9 +117,21 @@ const security = defineCommand({
               { name: 'Anti-nuke', value: settings.antiNukeEnabled ? 'on' : 'off', inline: true },
               { name: 'Anti-raid', value: settings.antiRaidEnabled ? 'on' : 'off', inline: true },
               { name: 'Anti-spam', value: settings.antiSpamEnabled ? 'on' : 'off', inline: true },
-              { name: 'Auto-lockdown', value: settings.lockdownOnTrigger ? 'on' : 'off', inline: true },
-              { name: 'Join threshold', value: `${settings.joinThreshold} / ${settings.joinWindowMs / 1000}s`, inline: true },
-              { name: 'Spam threshold', value: `${settings.spamThreshold} / ${settings.spamWindowMs / 1000}s`, inline: true },
+              {
+                name: 'Auto-lockdown',
+                value: settings.lockdownOnTrigger ? 'on' : 'off',
+                inline: true,
+              },
+              {
+                name: 'Join threshold',
+                value: `${settings.joinThreshold} / ${settings.joinWindowMs / 1000}s`,
+                inline: true,
+              },
+              {
+                name: 'Spam threshold',
+                value: `${settings.spamThreshold} / ${settings.spamWindowMs / 1000}s`,
+                inline: true,
+              },
               {
                 name: 'Recent events',
                 value: events.length
@@ -92,8 +150,10 @@ const security = defineCommand({
       const role = ctx.interaction.options.getRole('role');
       const reason = ctx.interaction.options.getString('reason') ?? undefined;
       if (!user && !role) throw new ValidationError('Provide a user or a role.');
-      if (user) await repos.security.addTrustedUser(ctx.guild.id, user.id, ctx.interaction.user.id, reason);
-      if (role) await repos.security.addTrustedRole(ctx.guild.id, role.id, ctx.interaction.user.id, reason);
+      if (user)
+        await repos.security.addTrustedUser(ctx.guild.id, user.id, ctx.interaction.user.id, reason);
+      if (role)
+        await repos.security.addTrustedRole(ctx.guild.id, role.id, ctx.interaction.user.id, reason);
       await repos.audit.record({
         guildId: ctx.guild.id,
         actorId: ctx.interaction.user.id,
@@ -114,13 +174,19 @@ const security = defineCommand({
         : role
           ? await repos.security.removeTrustedRole(ctx.guild.id, role.id)
           : false;
-      await ctx.reply({ embeds: [removed ? successEmbed('Trust entry removed.') : errorEmbed('No matching trust entry.')] });
+      await ctx.reply({
+        embeds: [
+          removed ? successEmbed('Trust entry removed.') : errorEmbed('No matching trust entry.'),
+        ],
+      });
       return;
     }
 
     if (sub === 'thresholds') {
       const patch = {
-        ...(ctx.interaction.options.getInteger('joins') !== null ? { joinThreshold: ctx.interaction.options.getInteger('joins')! } : {}),
+        ...(ctx.interaction.options.getInteger('joins') !== null
+          ? { joinThreshold: ctx.interaction.options.getInteger('joins')! }
+          : {}),
         ...(ctx.interaction.options.getInteger('join_window_s') !== null
           ? { joinWindowMs: ctx.interaction.options.getInteger('join_window_s')! * 1000 }
           : {}),
@@ -131,8 +197,12 @@ const security = defineCommand({
           ? { spamWindowMs: ctx.interaction.options.getInteger('message_window_s')! * 1000 }
           : {}),
       };
-      if (Object.keys(patch).length === 0) throw new ValidationError('Provide at least one threshold.');
-      const updated = await repos.security.updateSettings(ctx.guild.id, { ...patch, updatedBy: ctx.interaction.user.id });
+      if (Object.keys(patch).length === 0)
+        throw new ValidationError('Provide at least one threshold.');
+      const updated = await repos.security.updateSettings(ctx.guild.id, {
+        ...patch,
+        updatedBy: ctx.interaction.user.id,
+      });
       await ctx.reply({
         embeds: [
           successEmbed(
@@ -154,8 +224,13 @@ const security = defineCommand({
             : module === 'antiSpam'
               ? { antiSpamEnabled: enabled }
               : { lockdownOnTrigger: enabled };
-      await repos.security.updateSettings(ctx.guild.id, { ...patch, updatedBy: ctx.interaction.user.id });
-      await ctx.reply({ embeds: [successEmbed(`${module} is now ${enabled ? 'enabled' : 'disabled'}.`)] });
+      await repos.security.updateSettings(ctx.guild.id, {
+        ...patch,
+        updatedBy: ctx.interaction.user.id,
+      });
+      await ctx.reply({
+        embeds: [successEmbed(`${module} is now ${enabled ? 'enabled' : 'disabled'}.`)],
+      });
       return;
     }
 
@@ -168,8 +243,9 @@ const security = defineCommand({
             color: 0xed4245,
             description:
               events
-                .map((event) =>
-                  `\`${event.createdAt.toISOString().slice(0, 16)}\` **${event.type}** (${event.severity})${event.actorId ? ` by <@${event.actorId}>` : ''}${event.actionTaken ? ` → ${event.actionTaken}` : ''}`,
+                .map(
+                  (event) =>
+                    `\`${event.createdAt.toISOString().slice(0, 16)}\` **${event.type}** (${event.severity})${event.actorId ? ` by <@${event.actorId}>` : ''}${event.actionTaken ? ` → ${event.actionTaken}` : ''}`,
                 )
                 .join('\n')
                 .slice(0, 4000) || '_no events recorded_',
@@ -185,7 +261,11 @@ const security = defineCommand({
         alertChannelId: channel?.id ?? null,
         updatedBy: ctx.interaction.user.id,
       });
-      await ctx.reply({ embeds: [successEmbed(channel ? `Alerts will go to <#${channel.id}>.` : 'Alert channel cleared.')] });
+      await ctx.reply({
+        embeds: [
+          successEmbed(channel ? `Alerts will go to <#${channel.id}>.` : 'Alert channel cleared.'),
+        ],
+      });
     }
   },
 });
@@ -194,34 +274,48 @@ const automod = defineCommand({
   data: new SlashCommandBuilder()
     .setName('automod')
     .setDescription('Configures automatic message filtering.')
-    .addSubcommand((sub) => sub.setName('status').setDescription('Shows the current AutoMod configuration.'))
+    .addSubcommand((sub) =>
+      sub.setName('status').setDescription('Shows the current AutoMod configuration.'),
+    )
     .addSubcommand((sub) =>
       sub
         .setName('enable')
         .setDescription('Enables or disables AutoMod.')
-        .addBooleanOption((option) => option.setName('enabled').setDescription('Enabled').setRequired(true)),
+        .addBooleanOption((option) =>
+          option.setName('enabled').setDescription('Enabled').setRequired(true),
+        ),
     )
     .addSubcommand((sub) =>
       sub
         .setName('rule')
         .setDescription('Toggles an individual filter.')
         .addStringOption((option) =>
-          option.setName('rule').setDescription('Filter').addChoices(
-            { name: 'invite links', value: 'blockInvites' },
-            { name: 'suspicious links', value: 'blockLinks' },
-            { name: 'mass mentions', value: 'blockMentions' },
-            { name: 'excessive caps', value: 'blockCaps' },
-            { name: 'repeated messages', value: 'blockRepeated' },
-          ).setRequired(true),
+          option
+            .setName('rule')
+            .setDescription('Filter')
+            .addChoices(
+              { name: 'invite links', value: 'blockInvites' },
+              { name: 'suspicious links', value: 'blockLinks' },
+              { name: 'mass mentions', value: 'blockMentions' },
+              { name: 'excessive caps', value: 'blockCaps' },
+              { name: 'repeated messages', value: 'blockRepeated' },
+            )
+            .setRequired(true),
         )
-        .addBooleanOption((option) => option.setName('enabled').setDescription('Enabled').setRequired(true)),
+        .addBooleanOption((option) =>
+          option.setName('enabled').setDescription('Enabled').setRequired(true),
+        ),
     )
     .addSubcommand((sub) =>
       sub
         .setName('blockedword')
         .setDescription('Adds or removes a blocked word.')
-        .addStringOption((option) => option.setName('word').setDescription('Word or phrase').setRequired(true))
-        .addBooleanOption((option) => option.setName('remove').setDescription('Remove instead of add')),
+        .addStringOption((option) =>
+          option.setName('word').setDescription('Word or phrase').setRequired(true),
+        )
+        .addBooleanOption((option) =>
+          option.setName('remove').setDescription('Remove instead of add'),
+        ),
     )
     .addSubcommand((sub) =>
       sub
@@ -229,19 +323,25 @@ const automod = defineCommand({
         .setDescription('Exempts a role or channel from filtering.')
         .addRoleOption((option) => option.setName('role').setDescription('Role to exempt'))
         .addChannelOption((option) => option.setName('channel').setDescription('Channel to exempt'))
-        .addBooleanOption((option) => option.setName('remove').setDescription('Remove the exemption')),
+        .addBooleanOption((option) =>
+          option.setName('remove').setDescription('Remove the exemption'),
+        ),
     )
     .addSubcommand((sub) =>
       sub
         .setName('action')
         .setDescription('Sets what happens when a rule triggers.')
         .addStringOption((option) =>
-          option.setName('action').setDescription('Action').addChoices(
-            { name: 'log only', value: 'log' },
-            { name: 'delete message', value: 'delete' },
-            { name: 'warn author', value: 'warn' },
-            { name: 'timeout author', value: 'timeout' },
-          ).setRequired(true),
+          option
+            .setName('action')
+            .setDescription('Action')
+            .addChoices(
+              { name: 'log only', value: 'log' },
+              { name: 'delete message', value: 'delete' },
+              { name: 'warn author', value: 'warn' },
+              { name: 'timeout author', value: 'timeout' },
+            )
+            .setRequired(true),
         ),
     ),
   description: 'Configures automatic message filtering.',
@@ -263,12 +363,24 @@ const automod = defineCommand({
               { name: 'Action', value: config.action, inline: true },
               { name: 'Invites', value: String(config.blockInvites), inline: true },
               { name: 'Suspicious links', value: String(config.blockLinks), inline: true },
-              { name: 'Mass mentions', value: `${config.blockMentions} (>=${config.mentionThreshold})`, inline: true },
-              { name: 'Caps', value: `${config.blockCaps} (>${Math.round(config.capsRatio * 100)}%)`, inline: true },
+              {
+                name: 'Mass mentions',
+                value: `${config.blockMentions} (>=${config.mentionThreshold})`,
+                inline: true,
+              },
+              {
+                name: 'Caps',
+                value: `${config.blockCaps} (>${Math.round(config.capsRatio * 100)}%)`,
+                inline: true,
+              },
               { name: 'Repeated', value: String(config.blockRepeated), inline: true },
               { name: 'Blocked words', value: String(config.blockedWords.length), inline: true },
               { name: 'Exempt roles', value: String(config.exemptRoleIds.length), inline: true },
-              { name: 'Exempt channels', value: String(config.exemptChannelIds.length), inline: true },
+              {
+                name: 'Exempt channels',
+                value: String(config.exemptChannelIds.length),
+                inline: true,
+              },
             ],
           },
         ],
@@ -277,8 +389,12 @@ const automod = defineCommand({
     }
 
     if (sub === 'enable') {
-      const updated = await service.update(ctx.guild.id, { enabled: ctx.interaction.options.getBoolean('enabled', true) });
-      await ctx.reply({ embeds: [successEmbed(`AutoMod ${updated.enabled ? 'enabled' : 'disabled'}.`)] });
+      const updated = await service.update(ctx.guild.id, {
+        enabled: ctx.interaction.options.getBoolean('enabled', true),
+      });
+      await ctx.reply({
+        embeds: [successEmbed(`AutoMod ${updated.enabled ? 'enabled' : 'disabled'}.`)],
+      });
       return;
     }
 
@@ -286,17 +402,25 @@ const automod = defineCommand({
       const rule = ctx.interaction.options.getString('rule', true) as keyof typeof config;
       const enabled = ctx.interaction.options.getBoolean('enabled', true);
       await service.update(ctx.guild.id, { [rule]: enabled } as never);
-      await ctx.reply({ embeds: [successEmbed(`${String(rule)} is now ${enabled ? 'on' : 'off'}.`)] });
+      await ctx.reply({
+        embeds: [successEmbed(`${String(rule)} is now ${enabled ? 'on' : 'off'}.`)],
+      });
       return;
     }
 
     if (sub === 'blockedword') {
       const word = ctx.interaction.options.getString('word', true).toLowerCase().trim();
       const remove = ctx.interaction.options.getBoolean('remove') ?? false;
-      const words = remove ? config.blockedWords.filter((entry) => entry !== word) : [...new Set([...config.blockedWords, word])];
+      const words = remove
+        ? config.blockedWords.filter((entry) => entry !== word)
+        : [...new Set([...config.blockedWords, word])];
       const updated = await service.update(ctx.guild.id, { blockedWords: words });
       await ctx.reply({
-        embeds: [successEmbed(`${remove ? 'Removed' : 'Added'} \`${word}\`. ${updated.blockedWords.length} blocked word(s).`)],
+        embeds: [
+          successEmbed(
+            `${remove ? 'Removed' : 'Added'} \`${word}\`. ${updated.blockedWords.length} blocked word(s).`,
+          ),
+        ],
       });
       return;
     }
@@ -338,7 +462,9 @@ const notag = defineCommand({
       sub
         .setName('setup')
         .setDescription('Enables mention protection for this server.')
-        .addBooleanOption((option) => option.setName('enabled').setDescription('Enabled').setRequired(true)),
+        .addBooleanOption((option) =>
+          option.setName('enabled').setDescription('Enabled').setRequired(true),
+        ),
     )
     .addSubcommand((sub) =>
       sub
@@ -346,31 +472,43 @@ const notag = defineCommand({
         .setDescription('Protects yourself, or another user if you are staff.')
         .addUserOption((option) => option.setName('user').setDescription('User (defaults to you)'))
         .addStringOption((option) =>
-          option.setName('mode').setDescription('What to do').addChoices(
-            { name: 'log', value: 'log' },
-            { name: 'delete message', value: 'delete' },
-            { name: 'warn author', value: 'warn' },
-            { name: 'timeout author', value: 'timeout' },
-          ),
+          option
+            .setName('mode')
+            .setDescription('What to do')
+            .addChoices(
+              { name: 'log', value: 'log' },
+              { name: 'delete message', value: 'delete' },
+              { name: 'warn author', value: 'warn' },
+              { name: 'timeout author', value: 'timeout' },
+            ),
         ),
     )
     .addSubcommand((sub) =>
-      sub.setName('unprotect').setDescription('Removes protection.').addUserOption((option) =>
-        option.setName('user').setDescription('User (defaults to you)'),
-      ),
+      sub
+        .setName('unprotect')
+        .setDescription('Removes protection.')
+        .addUserOption((option) => option.setName('user').setDescription('User (defaults to you)')),
     )
     .addSubcommand((sub) => sub.setName('status').setDescription('Shows your protection state.'))
-    .addSubcommand((sub) => sub.setName('list').setDescription('Lists all protected users (staff only).'))
+    .addSubcommand((sub) =>
+      sub.setName('list').setDescription('Lists all protected users (staff only).'),
+    )
     .addSubcommand((sub) =>
       sub
         .setName('exempt')
         .setDescription('Adds an exemption for a user or role (staff only).')
-        .addUserOption((option) => option.setName('protected').setDescription('Protected user').setRequired(true))
+        .addUserOption((option) =>
+          option.setName('protected').setDescription('Protected user').setRequired(true),
+        )
         .addUserOption((option) => option.setName('user').setDescription('Exempt user'))
         .addRoleOption((option) => option.setName('role').setDescription('Exempt role'))
-        .addBooleanOption((option) => option.setName('remove').setDescription('Remove the exemption')),
+        .addBooleanOption((option) =>
+          option.setName('remove').setDescription('Remove the exemption'),
+        ),
     )
-    .addSubcommand((sub) => sub.setName('logs').setDescription('Shows recent violations (staff only).')),
+    .addSubcommand((sub) =>
+      sub.setName('logs').setDescription('Shows recent violations (staff only).'),
+    ),
   description: 'Protect users from unwanted mentions.',
   async execute(ctx) {
     const service = requireService(ctx.context.services.noTag, 'no-tag');
@@ -384,31 +522,61 @@ const notag = defineCommand({
 
     if (sub === 'setup') {
       if (!staff && !owner) {
-        await ctx.reply({ content: 'Only server staff can enable mention protection.', ephemeral: true });
+        await ctx.reply({
+          content: 'Only server staff can enable mention protection.',
+          ephemeral: true,
+        });
         return;
       }
       const enabled = ctx.interaction.options.getBoolean('enabled', true);
       await repos.guilds.updateSettingsGroup(ctx.guild.id, 'no_tag', { enabled });
-      await ctx.reply({ embeds: [successEmbed(`Mention protection ${enabled ? 'enabled' : 'disabled'}.`)] });
+      await ctx.reply({
+        embeds: [successEmbed(`Mention protection ${enabled ? 'enabled' : 'disabled'}.`)],
+      });
       return;
     }
 
     if (sub === 'protect') {
       const target = getTargetMember(ctx.interaction, 'user');
       const targetId = target?.id ?? actorId;
-      service.assertCanManage({ actorId, targetUserId: targetId, actorIsStaff: staff, actorIsOwner: owner });
-      const mode = (ctx.interaction.options.getString('mode') ?? 'delete') as 'log' | 'delete' | 'warn' | 'timeout';
-      await service.protect({ guildId: ctx.guild.id, userId: targetId, mode, setBy: actorId, selfSelected: targetId === actorId });
-      await ctx.reply({ embeds: [successEmbed(`<@${targetId}> is now protected (mode: ${mode}).`)] });
+      service.assertCanManage({
+        actorId,
+        targetUserId: targetId,
+        actorIsStaff: staff,
+        actorIsOwner: owner,
+      });
+      const mode = (ctx.interaction.options.getString('mode') ?? 'delete') as
+        'log' | 'delete' | 'warn' | 'timeout';
+      await service.protect({
+        guildId: ctx.guild.id,
+        userId: targetId,
+        mode,
+        setBy: actorId,
+        selfSelected: targetId === actorId,
+      });
+      await ctx.reply({
+        embeds: [successEmbed(`<@${targetId}> is now protected (mode: ${mode}).`)],
+      });
       return;
     }
 
     if (sub === 'unprotect') {
       const target = getTargetMember(ctx.interaction, 'user');
       const targetId = target?.id ?? actorId;
-      service.assertCanManage({ actorId, targetUserId: targetId, actorIsStaff: staff, actorIsOwner: owner });
+      service.assertCanManage({
+        actorId,
+        targetUserId: targetId,
+        actorIsStaff: staff,
+        actorIsOwner: owner,
+      });
       const removed = await repos.security.unprotectUser(ctx.guild.id, targetId);
-      await ctx.reply({ embeds: [removed ? successEmbed('Protection removed.') : errorEmbed('That user was not protected.')] });
+      await ctx.reply({
+        embeds: [
+          removed
+            ? successEmbed('Protection removed.')
+            : errorEmbed('That user was not protected.'),
+        ],
+      });
       return;
     }
 
@@ -434,7 +602,13 @@ const notag = defineCommand({
           {
             title: `Protected users (${rows.length})`,
             color: 0x5865f2,
-            description: rows.map((row) => `<@${row.userId}> - \`${row.mode}\`${row.selfSelected ? ' (self)' : ''}`).join('\n').slice(0, 4000) || '_none_',
+            description:
+              rows
+                .map(
+                  (row) => `<@${row.userId}> - \`${row.mode}\`${row.selfSelected ? ' (self)' : ''}`,
+                )
+                .join('\n')
+                .slice(0, 4000) || '_none_',
           },
         ],
       });
@@ -480,7 +654,10 @@ const notag = defineCommand({
             color: 0xfaa61a,
             description:
               rows
-                .map((row) => `\`${row.createdAt.toISOString().slice(0, 16)}\` <@${row.offenderId}> mentioned <@${row.protectedUserId}> → ${row.actionTaken}`)
+                .map(
+                  (row) =>
+                    `\`${row.createdAt.toISOString().slice(0, 16)}\` <@${row.offenderId}> mentioned <@${row.protectedUserId}> → ${row.actionTaken}`,
+                )
                 .join('\n')
                 .slice(0, 4000) || '_none recorded_',
           },
@@ -498,13 +675,18 @@ const nopin = defineCommand({
       sub
         .setName('setup')
         .setDescription('Enables pin monitoring.')
-        .addBooleanOption((option) => option.setName('enabled').setDescription('Enabled').setRequired(true))
+        .addBooleanOption((option) =>
+          option.setName('enabled').setDescription('Enabled').setRequired(true),
+        )
         .addStringOption((option) =>
-          option.setName('mode').setDescription('Response').addChoices(
-            { name: 'log only', value: 'log' },
-            { name: 'log + alert', value: 'alert' },
-            { name: 'unpin it', value: 'unpin' },
-          ),
+          option
+            .setName('mode')
+            .setDescription('Response')
+            .addChoices(
+              { name: 'log only', value: 'log' },
+              { name: 'log + alert', value: 'alert' },
+              { name: 'unpin it', value: 'unpin' },
+            ),
         ),
     )
     .addSubcommand((sub) =>
@@ -513,9 +695,13 @@ const nopin = defineCommand({
         .setDescription('Exempts a user or role.')
         .addUserOption((option) => option.setName('user').setDescription('User'))
         .addRoleOption((option) => option.setName('role').setDescription('Role'))
-        .addBooleanOption((option) => option.setName('remove').setDescription('Remove the exemption')),
+        .addBooleanOption((option) =>
+          option.setName('remove').setDescription('Remove the exemption'),
+        ),
     )
-    .addSubcommand((sub) => sub.setName('status').setDescription('Shows the current configuration.'))
+    .addSubcommand((sub) =>
+      sub.setName('status').setDescription('Shows the current configuration.'),
+    )
     .addSubcommand((sub) => sub.setName('logs').setDescription('Shows recent pin activity.')),
   description: 'Monitors pin and unpin activity.',
   staffOnly: true,
@@ -562,7 +748,10 @@ const nopin = defineCommand({
           ? (current.exemptRoleIds ?? []).filter((id) => id !== role.id)
           : [...new Set([...(current.exemptRoleIds ?? []), role.id])]
         : (current.exemptRoleIds ?? []);
-      await repos.guilds.updateSettingsGroup(ctx.guild.id, 'no_pin', { exemptUserIds: userIds, exemptRoleIds: roleIds });
+      await repos.guilds.updateSettingsGroup(ctx.guild.id, 'no_pin', {
+        exemptUserIds: userIds,
+        exemptRoleIds: roleIds,
+      });
       await ctx.reply({ embeds: [successEmbed('Exemptions updated.')] });
       return;
     }
@@ -576,8 +765,16 @@ const nopin = defineCommand({
             fields: [
               { name: 'Enabled', value: String(current.enabled ?? false), inline: true },
               { name: 'Mode', value: current.mode ?? 'log', inline: true },
-              { name: 'Exempt users', value: String((current.exemptUserIds ?? []).length), inline: true },
-              { name: 'Exempt roles', value: String((current.exemptRoleIds ?? []).length), inline: true },
+              {
+                name: 'Exempt users',
+                value: String((current.exemptUserIds ?? []).length),
+                inline: true,
+              },
+              {
+                name: 'Exempt roles',
+                value: String((current.exemptRoleIds ?? []).length),
+                inline: true,
+              },
             ],
           },
         ],

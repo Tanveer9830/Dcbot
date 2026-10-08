@@ -38,7 +38,9 @@ export interface ManagedGuildsResult {
  */
 export async function managedGuilds(token: string): Promise<ManagedGuildsResult> {
   const guilds = await currentUserGuilds(token);
-  const manageable = guilds.filter((guild) => guild.owner || canManageGuildPermissions(guild.permissions));
+  const manageable = guilds.filter(
+    (guild) => guild.owner || canManageGuildPermissions(guild.permissions),
+  );
   return { guilds, manageable };
 }
 
