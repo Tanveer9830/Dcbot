@@ -1,0 +1,6 @@
+# Dcbot dashboard
+User-agent: *
+Disallow: /dashboard
+Disallow: /owner
+Disallow: /api/
+Allow: /

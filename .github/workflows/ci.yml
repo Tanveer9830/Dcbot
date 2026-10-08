@@ -1,0 +1,157 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  # Only so the integration job can post the failing test output back on the PR.
+  pull-requests: write
+
+jobs:
+  quality:
+    name: Lint, types, commands, unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Formatting
+        run: npm run format:check
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Typecheck (bot, packages, dashboard)
+        run: npx tsc -p tsconfig.json --noEmit && npm run typecheck --workspace @dcbot/dashboard
+
+      - name: Command catalog smoke test
+        # Boots the real discovery + registration path and fails on skipped
+        # files, Discord limit violations or payload mismatches.
+        run: npm run verify:commands
+
+      - name: Command docs are up to date
+        run: |
+          npm run docs:commands
+          git diff --exit-code docs/COMMANDS.md
+
+      - name: Unit + repository tests (in-memory PostgreSQL)
+        run: npm test
+
+      # Fails on any high/critical advisory except the allowlisted ones that are
+      # documented in docs/SECURITY.md (see scripts/audit.mjs for the reasons).
+      - name: Dependency audit
+        run: node scripts/audit.mjs --production-only
+
+  integration:
+    name: Integration tests (PostgreSQL ${{ matrix.postgres }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        postgres: ['16']
+    services:
+      postgres:
+        image: postgres:${{ matrix.postgres }}
+        env:
+          POSTGRES_USER: dcbot
+          POSTGRES_PASSWORD: dcbot
+          POSTGRES_DB: dcbot_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U dcbot"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      TEST_DATABASE_URL: postgres://dcbot:dcbot@localhost:5432/dcbot_test
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Apply migrations
+        run: npm run migrate
+        env:
+          DATABASE_URL: ${{ env.TEST_DATABASE_URL }}
+
+      - name: Migration status
+        run: npm run migrate:status
+        env:
+          DATABASE_URL: ${{ env.TEST_DATABASE_URL }}
+
+      - name: Full test suite against real PostgreSQL
+        # Runs the transactional and JSONB tests that are skipped on pg-mem.
+        shell: bash
+        run: |
+          set -o pipefail
+          npm test 2>&1 | tee test-output.txt
+
+      - name: Publish test output on failure
+        if: failure()
+        shell: bash
+        run: |
+          {
+            echo '### Integration test output (tail)'
+            echo '```'
+            tail -n 250 test-output.txt
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      # Step summaries are not readable through the REST API, so a failing run also
+      # leaves the failing test names as a comment on the pull request.
+      - name: Report the failure on the pull request
+        if: failure() && github.event_name == 'pull_request'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: |
+          {
+            echo '### Integration tests against real PostgreSQL failed'
+            echo
+            echo '```'
+            # Strip ANSI colours and keep the failing assertions, not just the names.
+            sed -r 's/\x1b\[[0-9;]*[a-zA-Z]//g' test-output.txt | tail -n 160
+            echo '```'
+          } > failure.md
+          gh pr comment "${{ github.event.pull_request.number }}" --body-file failure.md
+
+  dashboard:
+    name: Dashboard production build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Build
+        run: npm run dashboard:build
+        env:
+          NEXT_TELEMETRY_DISABLED: '1'
+
+      - name: Lint dashboard
+        run: npm run lint --workspace @dcbot/dashboard
