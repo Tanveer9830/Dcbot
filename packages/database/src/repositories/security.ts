@@ -79,7 +79,11 @@ export class SecurityRepository {
          join_threshold, join_window_ms, spam_threshold, spam_window_ms,
          mention_threshold, min_account_age_days, lockdown_on_trigger,
          alert_channel_id, updated_by, config_history)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14::jsonb)
+       -- The insert path stores the entry as a one-element array. The column
+       -- default is not used because the value is supplied explicitly, and a
+       -- bare object here would make the later concat merge objects instead of
+       -- appending to the history. Found by running against real PostgreSQL.
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,jsonb_build_array($14::jsonb))
        ON CONFLICT (guild_id) DO UPDATE SET
          anti_nuke_enabled    = EXCLUDED.anti_nuke_enabled,
          anti_raid_enabled    = EXCLUDED.anti_raid_enabled,

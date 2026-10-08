@@ -24,6 +24,7 @@ import { readdir, readFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { newDb } from 'pg-mem';
+import { Client } from 'pg';
 import type { QueryResult, QueryResultRow } from 'pg';
 import { Database, migrate, type Queryable, type Transactional } from '@dcbot/database';
 
@@ -70,7 +71,7 @@ export interface TestDatabaseOptions {
  */
 export async function createTestDatabase(options: TestDatabaseOptions = {}): Promise<TestDatabase> {
   const url = process.env.TEST_DATABASE_URL;
-  const db = url ? createPostgresTestDatabase(url) : createMemoryTestDatabase();
+  const db = url ? await createPostgresTestDatabase(url) : createMemoryTestDatabase();
   if (!options.skipMigrations) {
     const result = await migrate(db, MIGRATIONS_DIR);
     if (result.checksumMismatch.length > 0) {
@@ -80,15 +81,41 @@ export async function createTestDatabase(options: TestDatabaseOptions = {}): Pro
   return db;
 }
 
-function createPostgresTestDatabase(url: string): TestDatabase {
-  const real = new Database({ connectionString: url, applicationName: 'dcbot-test' });
+async function createPostgresTestDatabase(url: string): Promise<TestDatabase> {
+  // Every caller gets its own database, so test files can run in parallel against
+  // one server without colliding on the hardcoded IDs they use. This mirrors what
+  // pg-mem gives for free (one instance per call) and keeps migrations honest: each
+  // test database really is empty before the migrator runs.
+  const name = `dcbot_test_${process.pid}_${Math.random().toString(36).slice(2, 10)}`;
+  const admin = new Client({ connectionString: url, application_name: 'dcbot-test-admin' });
+  await admin.connect();
+  try {
+    // The name is generated above from a pid and a random suffix, never from input.
+    await admin.query(`CREATE DATABASE ${name}`);
+  } finally {
+    await admin.end();
+  }
+
+  const target = new URL(url);
+  target.pathname = `/${name}`;
+  const real = new Database({ connectionString: target.toString(), applicationName: 'dcbot-test' });
+
   return {
     isRealPostgres: true,
     label: 'postgresql',
     query: (text, params) => real.query(text, params as unknown[]),
     queryOne: (text, params) => real.queryOne(text, params as unknown[]),
     transaction: (work) => real.transaction(work),
-    close: () => real.close(),
+    close: async () => {
+      await real.close();
+      const cleanup = new Client({ connectionString: url, application_name: 'dcbot-test-admin' });
+      await cleanup.connect();
+      try {
+        await cleanup.query(`DROP DATABASE IF EXISTS ${name}`);
+      } finally {
+        await cleanup.end();
+      }
+    },
   };
 }
 
