@@ -99,7 +99,21 @@ jobs:
 
       - name: Full test suite against real PostgreSQL
         # Runs the transactional and JSONB tests that are skipped on pg-mem.
-        run: npm test
+        shell: bash
+        run: |
+          set -o pipefail
+          npm test 2>&1 | tee test-output.txt
+
+      - name: Publish test output on failure
+        if: failure()
+        shell: bash
+        run: |
+          {
+            echo '### Integration test output (tail)'
+            echo '```'
+            tail -n 250 test-output.txt
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
 
   dashboard:
     name: Dashboard production build

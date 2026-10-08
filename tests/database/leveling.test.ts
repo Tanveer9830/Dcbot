@@ -44,7 +44,7 @@ describe('leveling repository', () => {
   it('levels up across the curve boundary and reports the roles to grant', async () => {
     const guild = '920000000000000005';
     const user = '920000000000000006';
-    const leveling = new LevelingRepository(db, 1); // 1ms cooldown so awards stack
+    const leveling = new LevelingRepository(db, 0); // no cooldown, so awards stack
 
     await leveling.setRoleReward(guild, 1, 'role-level-1');
     await leveling.setRoleReward(guild, 2, 'role-level-2');
@@ -67,7 +67,7 @@ describe('leveling repository', () => {
   it('never grants roles when XP goes down', async () => {
     const guild = '920000000000000007';
     const user = '920000000000000008';
-    const leveling = new LevelingRepository(db, 1);
+    const leveling = new LevelingRepository(db, 0);
 
     await leveling.setXp(guild, user, 900); // level 3
     await leveling.setRoleReward(guild, 1, 'role-level-1');
@@ -80,7 +80,7 @@ describe('leveling repository', () => {
 
   it('computes a rank that matches the leaderboard position', async () => {
     const guild = '920000000000000009';
-    const leveling = new LevelingRepository(db, 1);
+    const leveling = new LevelingRepository(db, 0);
     await leveling.setXp(guild, '920000000000000010', 100);
     await leveling.setXp(guild, '920000000000000011', 900);
     await leveling.setXp(guild, '920000000000000012', 400);
@@ -98,7 +98,7 @@ describe('leveling repository', () => {
   it('clamps XP at zero and recomputes the level on admin set', async () => {
     const guild = '920000000000000013';
     const user = '920000000000000014';
-    const leveling = new LevelingRepository(db, 1);
+    const leveling = new LevelingRepository(db, 0);
 
     const negative = await leveling.setXp(guild, user, -500);
     expect(negative.xp).toBe(0);
