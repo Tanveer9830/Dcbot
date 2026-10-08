@@ -129,7 +129,8 @@ jobs:
             echo '### Integration tests against real PostgreSQL failed'
             echo
             echo '```'
-            grep -E 'FAIL|Tests |Test Files |AssertionError|Error:' test-output.txt | head -n 60
+            # Strip ANSI colours and keep the failing assertions, not just the names.
+            sed -r 's/\x1b\[[0-9;]*[a-zA-Z]//g' test-output.txt | tail -n 160
             echo '```'
           } > failure.md
           gh pr comment "${{ github.event.pull_request.number }}" --body-file failure.md

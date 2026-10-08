@@ -362,7 +362,13 @@ async function insertLedger(
     `INSERT INTO economy_transactions
        (guild_id, user_id, kind, amount, wallet_after, bank_after, counterparty_id, memo, idempotency_key)
      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-     ON CONFLICT (idempotency_key) DO NOTHING
+     -- The unique index on idempotency_key is partial (WHERE idempotency_key IS
+     -- NOT NULL), so a bare conflict target is used: naming the column without
+     -- repeating the predicate makes PostgreSQL reject the statement with "no
+     -- unique or exclusion constraint matching the ON CONFLICT specification", and
+     -- repeating it is not understood by the in-memory test database. The only
+     -- other unique constraint on this table is the BIGSERIAL primary key.
+     ON CONFLICT DO NOTHING
      RETURNING id`,
     [
       params.guildId,
