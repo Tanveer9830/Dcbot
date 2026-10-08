@@ -1,0 +1,98 @@
+# Dcbot service stack.
+#
+#   docker compose up -d                 # PostgreSQL + bot + dashboard
+#   docker compose --profile cache up -d # + Redis
+#   docker compose --profile music up -d # + Lavalink node
+#
+# Configuration comes from `.env` (copy `.env.example`). No secret is stored in
+# this file: only variable names and non-sensitive defaults.
+
+name: dcbot
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-dcbot}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+      POSTGRES_DB: ${POSTGRES_DB:-dcbot}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER:-dcbot} -d ${POSTGRES_DB:-dcbot}']
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 15s
+    ports:
+      # Bind to localhost only; the services reach PostgreSQL over the compose network.
+      - '127.0.0.1:${POSTGRES_PORT:-5432}:5432'
+
+  bot:
+    build:
+      context: .
+      target: bot
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    env_file: .env
+    environment:
+      NODE_ENV: production
+      # Compose service DNS overrides whatever host the local .env points at.
+      DATABASE_URL: postgres://${POSTGRES_USER:-dcbot}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-dcbot}
+      MIGRATIONS_DIR: ./database/migrations
+      # The dashboard is another container, so the metrics API must not stay on
+      # loopback. It is still bearer-token protected and never published to the host.
+      BOT_API_HOST: 0.0.0.0
+    # Migrations run before the bot connects to the gateway, so a fresh database
+    # is never served by an out-of-date schema.
+    command: sh -c 'npm run migrate && npm run bot'
+
+  dashboard:
+    build:
+      context: .
+      target: dashboard
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    env_file: .env
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgres://${POSTGRES_USER:-dcbot}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-dcbot}
+      MIGRATIONS_DIR: ./database/migrations
+      BOT_API_URL: http://bot:8787
+    ports:
+      - '${DASHBOARD_PORT:-3000}:3000'
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    profiles: ['cache']
+    command: ['redis-server', '--appendonly', 'yes']
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  lavalink:
+    image: ghcr.io/lavalink-devs/lavalink:4
+    restart: unless-stopped
+    profiles: ['music']
+    environment:
+      _JAVA_OPTIONS: -Xmx1G
+      SERVER_PORT: '2333'
+      LAVALINK_SERVER_PASSWORD: ${LAVALINK_PASSWORD:?set LAVALINK_PASSWORD in .env when using the music profile}
+    volumes:
+      - ./config/lavalink:/opt/Lavalink
+    ports:
+      - '127.0.0.1:${LAVALINK_PORT:-2333}:2333'
+
+volumes:
+  pgdata:
+  redisdata:

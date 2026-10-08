@@ -211,6 +211,21 @@ export class SecurityRepository {
 
   // --- /no-tag ---------------------------------------------------------------
 
+  /**
+   * Global (all guilds) security event counts since `since`, used by the owner
+   * metrics endpoint. Counts come straight from the table.
+   */
+  async countAllSince(since: Date): Promise<{ total: number; critical: number }> {
+    const row = await this.db.queryOne<{ total: string; critical: string }>(
+      `SELECT COUNT(*)::text AS total,
+              COUNT(*) FILTER (WHERE severity = 'critical')::text AS critical
+         FROM security_events
+        WHERE created_at >= $1`,
+      [since.toISOString()],
+    );
+    return { total: Number(row?.total ?? '0'), critical: Number(row?.critical ?? '0') };
+  }
+
   async protectUser(params: {
     guildId: string;
     userId: string;

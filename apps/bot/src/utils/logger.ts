@@ -42,6 +42,17 @@ export interface LoggerOptions {
   bindings?: Record<string, unknown>;
 }
 
+/**
+ * Process-wide counters. Module level because `child()` creates new instances and
+ * a per-instance counter would miss every scoped logger.
+ */
+const LOG_COUNTERS: Record<LogLevel, number> = { debug: 0, info: 0, warn: 0, error: 0 };
+
+/** Snapshot of how many lines were logged at each level since boot. */
+export function logStats(): Record<LogLevel, number> {
+  return { ...LOG_COUNTERS };
+}
+
 export class Logger {
   private readonly level: LogLevel;
   private readonly json: boolean;
@@ -75,6 +86,9 @@ export class Logger {
   }
 
   private write(level: LogLevel, message: string, extra?: Record<string, unknown>): void {
+    // Counted before the level filter: an error happened even if the console
+    // level hides it.
+    LOG_COUNTERS[level] += 1;
     if (LEVEL_ORDER[level] < LEVEL_ORDER[this.level]) return;
     const payload = redact({ ...this.bindings, ...extra }) as Record<string, unknown>;
     const timestamp = new Date().toISOString();

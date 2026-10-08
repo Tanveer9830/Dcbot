@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation';
 import { getSession, publicSession } from '../../lib/session';
 import { isOwner, ownerPolicy } from '../../lib/authorization';
 import { dbHealth, getRepos } from '../../lib/db';
+import { fetchBotMetrics, formatUptime } from '../../lib/botApi';
 import { StatCard } from '../../components/StatCard';
 
 export const dynamic = 'force-dynamic';
@@ -33,11 +34,12 @@ export default async function OwnerPage(): Promise<JSX.Element> {
   }
 
   const repos = getRepos();
-  const health = await dbHealth();
-  const [stats, recentAudit, globalCommands] = await Promise.all([
+  const [health, stats, recentAudit, globalCommands, bot] = await Promise.all([
+    dbHealth(),
     repos ? repos.overview.globalStats() : null,
     repos ? repos.audit.list({ limit: 25 }) : Promise.resolve([]),
     repos ? repos.customCommands.listGlobal() : Promise.resolve([]),
+    fetchBotMetrics(),
   ]);
 
   const me = publicSession(session);
@@ -64,11 +66,66 @@ export default async function OwnerPage(): Promise<JSX.Element> {
         <StatCard label="Audit entries" value={recentAudit.length} detail="25 most recent" />
       </div>
 
-      <div className="alert" style={{ marginTop: 16, borderColor: 'var(--border)', color: 'var(--muted)' }}>
-        Live bot metrics (uptime, shard state, CPU, gateway latency) are served by the bot itself. Enable
-        <code>BOT_API_ENABLED=true</code> and <code>BOT_API_TOKEN</code>, then add the endpoint here - the dashboard
-        never fabricates values it cannot fetch.
-      </div>
+      <h2 style={{ marginTop: 24 }}>Live bot process</h2>
+      {bot.available ? (
+        <div className="grid">
+          <StatCard
+            label="Bot uptime"
+            value={formatUptime(bot.metrics.process.uptimeMs)}
+            detail={`pid ${bot.metrics.process.pid} on Node ${bot.metrics.process.node}`}
+          />
+          <StatCard
+            label="Gateway"
+            value={bot.metrics.gateway.pingMs === null ? 'unknown' : `${bot.metrics.gateway.pingMs} ms`}
+            detail={`websocket ${bot.metrics.gateway.status}`}
+          />
+          <StatCard
+            label="Guilds / cached users"
+            value={`${bot.metrics.gateway.guilds} / ${bot.metrics.gateway.cachedUsers}`}
+            detail="from the gateway cache"
+          />
+          <StatCard
+            label="Memory (RSS)"
+            value={bot.metrics.process.memory.rss}
+            detail={`heap ${bot.metrics.process.memory.heapUsed} of ${bot.metrics.process.memory.heapTotal}`}
+          />
+          <StatCard
+            label="CPU load (1 min)"
+            value={String(bot.metrics.process.cpu.load1)}
+            detail={`${bot.metrics.process.cpu.cores} cores`}
+          />
+          <StatCard
+            label="Logged errors"
+            value={String(bot.metrics.logs.error)}
+            detail={`${bot.metrics.logs.warn} warnings since boot`}
+          />
+          <StatCard
+            label="Security events (24h)"
+            value={bot.metrics.security ? String(bot.metrics.security.last24h) : 'unavailable'}
+            detail={
+              bot.metrics.security
+                ? `${bot.metrics.security.criticalLast24h} critical`
+                : 'database not attached to the bot'
+            }
+          />
+          {bot.metrics.services.map((service) => (
+            <StatCard
+              key={service.service}
+              label={service.service}
+              value={service.status}
+              detail={service.latencyMs !== undefined && service.latencyMs !== null
+                ? `${service.latencyMs} ms${service.detail ? ` - ${service.detail}` : ''}`
+                : (service.detail ?? '')}
+            />
+          ))}
+        </div>
+      ) : (
+        <div className="alert" style={{ borderColor: 'var(--border)', color: 'var(--muted)' }}>
+          Live bot process metrics are unavailable: {bot.reason}. Enable <code>BOT_API_ENABLED=true</code> with a
+          shared <code>BOT_API_TOKEN</code> (and <code>BOT_API_URL</code> when the bot runs on another host) to show
+          uptime, gateway latency, memory and service health here. Values are never estimated.
+        </div>
+      )}
 
       <div className="card" style={{ marginTop: 16 }}>
         <h2>Recent owner and dashboard actions</h2>

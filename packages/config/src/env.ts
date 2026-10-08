@@ -55,7 +55,13 @@ const envSchema = z.object({
   MUSIC_ENABLED: booleanish,
 
   BOT_API_ENABLED: booleanish,
+  /** Bind address for the metrics API. Loopback by default; set to 0.0.0.0
+   *  only when another container/host must reach it, and always with a token. */
+  BOT_API_HOST: z.string().default('127.0.0.1'),
   BOT_API_PORT: z.coerce.number().int().min(1).max(65535).default(8787),
+  /** Absolute URL the dashboard uses to reach the bot metrics API. Defaults to
+   *  http://BOT_API_HOST:BOT_API_PORT, which only works on a single host. */
+  BOT_API_URL: optionalString,
   BOT_API_TOKEN: optionalString,
 });
 

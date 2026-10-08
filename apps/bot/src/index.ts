@@ -31,6 +31,7 @@ import { LockdownManager } from './security/lockdown.js';
 import { MusicManager } from './music/manager.js';
 import { DiscordVoiceBridge } from './music/voiceBridge.js';
 import { startBackgroundJobs, type JobHandle } from './automation/scheduler.js';
+import { startBotApi, type BotApiHandle } from './api/server.js';
 import type { BotContext } from './types.js';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
@@ -185,10 +186,15 @@ async function main(): Promise<void> {
   registerGuildEvents(client, context);
 
   let jobs: JobHandle | null = null;
+  let api: BotApiHandle | null = null;
 
   const shutdown = async (signal: string): Promise<void> => {
     logger.info('shutting down', { signal });
     jobs?.stop();
+    if (api) {
+      await api.close().catch(() => undefined);
+      api = null;
+    }
     try {
       await services.shutdown(context);
     } catch (error) {
@@ -211,6 +217,29 @@ async function main(): Promise<void> {
 
   await client.login(env.DISCORD_TOKEN);
   jobs = startBackgroundJobs(context);
+
+  // Optional metrics API consumed by the dashboard's owner panel. It never starts
+  // without a token, and it only reports measurements taken in this process.
+  if (env.BOT_API_ENABLED) {
+    try {
+      api = await startBotApi({
+        host: env.BOT_API_HOST,
+        port: env.BOT_API_PORT,
+        token: env.BOT_API_TOKEN ?? '',
+        client,
+        health: services.health,
+        repos,
+        registry,
+        startedAt,
+        logger: logger.child({ scope: 'api' }),
+      });
+    } catch (error) {
+      logger.error('metrics API did not start', {
+        error: error instanceof Error ? error.message : String(error),
+      });
+    }
+  }
+
   logger.info('bot started', { node: process.version, guilds: client.guilds.cache.size });
 }
 

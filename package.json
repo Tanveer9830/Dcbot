@@ -29,7 +29,8 @@
     "dashboard:build": "npm run build --workspace @dcbot/dashboard",
     "start:bot": "node apps/bot/dist/index.js",
     "start:dashboard": "npm run start --workspace @dcbot/dashboard",
-    "verify:commands": "tsx scripts/smoke-commands.ts"
+    "verify:commands": "tsx scripts/smoke-commands.ts",
+    "docs:commands": "tsx scripts/docs-commands.ts"
   },
   "devDependencies": {
     "@types/node": "^22.10.2",
