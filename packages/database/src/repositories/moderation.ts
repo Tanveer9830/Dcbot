@@ -4,9 +4,8 @@ import type { ModerationActionType, ModerationCase, Warning } from '@dcbot/share
 export class ModerationRepository {
   constructor(private readonly db: Queryable) {}
 
-  /** Creates a case with a per-guild sequential number. Must run in a transaction. */
+  /** Creates a case with a per-guild sequential number. */
   async createCase(
-    tx: Queryable,
     params: {
       guildId: string;
       type: ModerationActionType;
@@ -17,7 +16,7 @@ export class ModerationRepository {
       expiresAt?: Date | null;
     },
   ): Promise<ModerationCase> {
-    const row = await tx.query<{ case_number: number }>(
+    const row = await this.db.query<{ case_number: number }>(
       `INSERT INTO moderation_cases (guild_id, case_number, type, target_id, actor_id, reason, evidence_url, expires_at)
        VALUES ($1, (SELECT COALESCE(MAX(case_number), 0) + 1 FROM moderation_cases WHERE guild_id = $1),
                $2, $3, $4, $5, $6, $7)
@@ -33,11 +32,39 @@ export class ModerationRepository {
       ],
     );
     const caseNumber = row.rows[0]?.case_number ?? 1;
-    const created = await tx.query<Record<string, unknown>>(
+    const created = await this.db.query<Record<string, unknown>>(
       'SELECT * FROM moderation_cases WHERE guild_id = $1 AND case_number = $2',
       [params.guildId, caseNumber],
     );
     return mapCase(created.rows[0]!);
+  }
+
+  /**
+   * Creates several cases atomically. Used for bulk moderation so the case
+   * numbers stay contiguous and either all rows land or none do.
+   */
+  async createCases(
+    tx: Queryable,
+    items: Array<{
+      guildId: string;
+      type: ModerationActionType;
+      targetId: string;
+      actorId: string;
+      reason: string;
+    }>,
+  ): Promise<number[]> {
+    const ids: number[] = [];
+    for (const item of items) {
+      const row = await tx.query<{ case_number: number }>(
+        `INSERT INTO moderation_cases (guild_id, case_number, type, target_id, actor_id, reason)
+         VALUES ($1, (SELECT COALESCE(MAX(case_number), 0) + 1 FROM moderation_cases WHERE guild_id = $1),
+                 $2, $3, $4, $5)
+         RETURNING case_number`,
+        [item.guildId, item.type, item.targetId, item.actorId, item.reason],
+      );
+      ids.push(Number(row.rows[0]?.case_number ?? 0));
+    }
+    return ids;
   }
 
   async listCasesForUser(
