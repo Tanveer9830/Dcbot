@@ -1,0 +1,42 @@
+{
+  "name": "dcbot",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Dcbot - modular Discord bot and web dashboard (TypeScript, discord.js, Next.js, PostgreSQL)",
+  "license": "MIT",
+  "engines": {
+    "node": ">=20.11.0"
+  },
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "build": "npm run build --workspaces --if-present",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "lint": "eslint . --ext .ts,.tsx --max-warnings 0",
+    "format": "prettier --write \"**/*.{ts,tsx,json,md,yml,yaml,css}\"",
+    "format:check": "prettier --check \"**/*.{ts,tsx,json,md,yml,yaml,css}\"",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "migrate": "tsx scripts/migrate.ts",
+    "migrate:status": "tsx scripts/migrate.ts --status",
+    "deploy-commands": "tsx apps/bot/src/deploy-commands.ts",
+    "bot": "tsx apps/bot/src/index.ts",
+    "bot:dev": "tsx watch apps/bot/src/index.ts",
+    "dashboard": "npm run dev --workspace @dcbot/dashboard",
+    "dashboard:build": "npm run build --workspace @dcbot/dashboard",
+    "start:bot": "node apps/bot/dist/index.js",
+    "start:dashboard": "npm run start --workspace @dcbot/dashboard"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "@typescript-eslint/eslint-plugin": "^8.18.0",
+    "@typescript-eslint/parser": "^8.18.0",
+    "eslint": "^8.57.1",
+    "prettier": "^3.4.2",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2",
+    "vitest": "^2.1.8"
+  }
+}

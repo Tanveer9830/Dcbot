@@ -1,0 +1,42 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Builds
+dist/
+build/
+.next/
+out/
+*.tsbuildinfo
+
+# Environment & secrets - NEVER commit real credentials
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Test / coverage
+coverage/
+.vitest/
+
+# Editor / OS
+.DS_Store
+.idea/
+.vscode/*
+!.vscode/extensions.json
+
+# Local databases / data volumes
+pgdata/
+redisdata/
+lavalink/
+*.sqlite
+*.sqlite3
