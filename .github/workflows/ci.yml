@@ -12,6 +12,8 @@ concurrency:
 
 permissions:
   contents: read
+  # Only so the integration job can post the failing test output back on the PR.
+  pull-requests: write
 
 jobs:
   quality:
@@ -114,6 +116,23 @@ jobs:
             tail -n 250 test-output.txt
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
+
+      # Step summaries are not readable through the REST API, so a failing run also
+      # leaves the failing test names as a comment on the pull request.
+      - name: Report the failure on the pull request
+        if: failure() && github.event_name == 'pull_request'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: |
+          {
+            echo '### Integration tests against real PostgreSQL failed'
+            echo
+            echo '```'
+            grep -E 'FAIL|Tests |Test Files |AssertionError|Error:' test-output.txt | head -n 60
+            echo '```'
+          } > failure.md
+          gh pr comment "${{ github.event.pull_request.number }}" --body-file failure.md
 
   dashboard:
     name: Dashboard production build
