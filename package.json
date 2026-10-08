@@ -4,6 +4,7 @@
   "private": true,
   "description": "Dcbot - modular Discord bot and web dashboard (TypeScript, discord.js, Next.js, PostgreSQL)",
   "license": "MIT",
+  "type": "module",
   "engines": {
     "node": ">=20.11.0"
   },
@@ -27,7 +28,8 @@
     "dashboard": "npm run dev --workspace @dcbot/dashboard",
     "dashboard:build": "npm run build --workspace @dcbot/dashboard",
     "start:bot": "node apps/bot/dist/index.js",
-    "start:dashboard": "npm run start --workspace @dcbot/dashboard"
+    "start:dashboard": "npm run start --workspace @dcbot/dashboard",
+    "verify:commands": "tsx scripts/smoke-commands.ts"
   },
   "devDependencies": {
     "@types/node": "^22.10.2",

@@ -63,7 +63,7 @@ export class CommandRegistry {
 
   /** JSON payloads for the Discord application command API. */
   toJSON(): Record<string, unknown>[] {
-    return this.list().map((command) => command.data.toJSON());
+    return this.list().map((command) => command.data.toJSON() as Record<string, unknown>);
   }
 
   /**
@@ -82,7 +82,7 @@ export class CommandRegistry {
     }
 
     for (const command of list) {
-      const json = command.data.toJSON() as {
+      const json = command.data.toJSON() as unknown as {
         name: string;
         description: string;
         options?: Array<Record<string, unknown>>;
@@ -174,7 +174,7 @@ export class CommandRegistry {
 }
 
 export function commandName(command: SlashCommand): string {
-  const json = command.data.toJSON() as { name: string };
+  const json = command.data.toJSON() as unknown as { name: string };
   return json.name;
 }
 

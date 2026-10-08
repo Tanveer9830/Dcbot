@@ -373,8 +373,9 @@ export class CommunityRepository {
     }));
   }
 
-  async markReminderSent(id: number): Promise<void> {
-    await this.db.query('UPDATE reminders SET sent_at = now() WHERE id = $1', [id]);
+  async markReminderSent(id: number): Promise<boolean> {
+    const result = await this.db.query('UPDATE reminders SET sent_at = now() WHERE id = $1', [id]);
+    return (result.rowCount ?? 0) > 0;
   }
 }
 

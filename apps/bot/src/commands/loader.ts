@@ -37,6 +37,13 @@ async function walk(dir: string): Promise<string[]> {
 }
 
 /**
+ * Files inside the commands directory that are shared infrastructure rather
+ * than command modules. They are excluded from discovery and from the
+ * "no command exported" warning.
+ */
+export const INFRASTRUCTURE_FILES = new Set(['loader.ts', 'registry.ts', 'helpers.ts']);
+
+/**
  * Discovers command modules under `dir`.
  *
  * A file may default-export a command or an array of commands. Anything that
@@ -50,7 +57,8 @@ export async function loadCommands(dir: string, logger?: Logger): Promise<LoadRe
   const loaded: string[] = [];
 
   for (const file of files) {
-    if (file.endsWith('loader.ts') || file.endsWith('loader.js')) continue;
+    const basename = path.basename(file);
+    if (INFRASTRUCTURE_FILES.has(basename) || basename.endsWith('loader.js')) continue;
     try {
       const module = (await import(pathToFileURL(file).href)) as Record<string, unknown>;
       const candidates: unknown[] = [];
@@ -68,10 +76,10 @@ export async function loadCommands(dir: string, logger?: Logger): Promise<LoadRe
         }
       }
       if (found > 0) {
-        loaded.push(path.basename(file));
+        loaded.push(basename);
       } else {
-        skipped.push(path.basename(file));
-        logger?.warn(`No command exported by ${path.basename(file)}`);
+        skipped.push(basename);
+        logger?.warn(`No command exported by ${basename}`);
       }
     } catch (error) {
       skipped.push(path.basename(file));
