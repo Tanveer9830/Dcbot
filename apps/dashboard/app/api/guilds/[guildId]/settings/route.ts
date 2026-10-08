@@ -2,27 +2,12 @@ import { NextResponse, type NextRequest } from 'next/server';
 import { getSession } from '../../../../../lib/session';
 import { AuthorizationFailure, assertGuildManager } from '../../../../../lib/authorization';
 import { getRepos } from '../../../../../lib/db';
-import { SETTINGS_GROUPS, isSettingsGroup, type SettingsGroup } from '@dcbot/database';
-
-/** Settings groups the dashboard may write, and their size limits. */
-const WRITABLE: ReadonlySet<SettingsGroup> = new Set<SettingsGroup>([
-  'moderation',
-  'automod',
-  'security',
-  'tickets',
-  'welcome',
-  'logging',
-  'economy',
-  'leveling',
-  'music',
-  'suggestions',
-  'reaction_roles',
-]);
-
-export interface SettingsRequest {
-  group: string;
-  patch: Record<string, unknown>;
-}
+import { SETTINGS_GROUPS } from '@dcbot/database';
+import {
+  WRITABLE_SETTINGS_GROUPS,
+  isSnowflakeParam,
+  validateSettingsRequest,
+} from '../../../../../lib/settingsPolicy';
 
 /**
  * PATCH guild settings.
@@ -49,27 +34,23 @@ export async function POST(
     return NextResponse.json({ error: 'The dashboard has no database connection.' }, { status: 503 });
   }
 
-  let body: SettingsRequest;
+  let raw: unknown;
   try {
-    body = (await request.json()) as SettingsRequest;
+    raw = await request.json();
   } catch {
     return NextResponse.json({ error: 'Invalid JSON body.' }, { status: 400 });
   }
 
-  if (!isSettingsGroup(body.group) || !WRITABLE.has(body.group)) {
+  const validated = validateSettingsRequest(raw);
+  if (!validated.ok) {
     return NextResponse.json(
-      { error: `Settings group "${String(body.group)}" is not writable from the dashboard.`, allowed: [...WRITABLE] },
-      { status: 400 },
+      validated.status === 400
+        ? { error: validated.error, allowed: [...WRITABLE_SETTINGS_GROUPS] }
+        : { error: validated.error },
+      { status: validated.status },
     );
   }
-  if (!body.patch || typeof body.patch !== 'object' || Array.isArray(body.patch)) {
-    return NextResponse.json({ error: 'patch must be an object.' }, { status: 400 });
-  }
-  const serialized = JSON.stringify(body.patch);
-  if (serialized.length > 16_000) {
-    return NextResponse.json({ error: 'Settings payload is too large.' }, { status: 413 });
-  }
-  if (!/^[0-9]{15,25}$/.test(params.guildId)) {
+  if (!isSnowflakeParam(params.guildId)) {
     return NextResponse.json({ error: 'Invalid guild ID.' }, { status: 400 });
   }
 
@@ -82,19 +63,19 @@ export async function POST(
     return NextResponse.json({ error: 'Could not verify your permissions.' }, { status: 403 });
   }
 
-  await repos.guilds.updateSettingsGroup(params.guildId, body.group, body.patch);
+  await repos.guilds.updateSettingsGroup(params.guildId, validated.group, validated.patch);
   await repos.audit.record({
     guildId: params.guildId,
     actorId: session.userId,
     actorKind: 'dashboard_user',
-    action: `dashboard.settings.${body.group}`,
+    action: `dashboard.settings.${validated.group}`,
     targetType: 'guild_settings',
     targetId: params.guildId,
-    detail: { changedKeys: Object.keys(body.patch) },
+    detail: { changedKeys: Object.keys(validated.patch) },
     ip: request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? null,
   });
 
-  return NextResponse.json({ ok: true, group: body.group });
+  return NextResponse.json({ ok: true, group: validated.group });
 }
 
 export async function GET(

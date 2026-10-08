@@ -1,6 +1,5 @@
 import type {
   ChatInputCommandInteraction,
-  Client,
   Guild,
   GuildMember,
   InteractionReplyOptions,

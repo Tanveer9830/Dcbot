@@ -102,7 +102,7 @@ export class ModerationRepository {
 
   async revokeCase(guildId: string, caseNumber: number): Promise<boolean> {
     const result = await this.db.query(
-      'UPDATE moderation_cases SET revoked = TRUE WHERE guild_id = $1 AND case_number = $2',
+      'UPDATE moderation_cases SET revoked = TRUE WHERE guild_id = $1 AND case_number = $2 AND revoked = FALSE',
       [guildId, caseNumber],
     );
     return (result.rowCount ?? 0) > 0;

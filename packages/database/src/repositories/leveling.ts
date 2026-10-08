@@ -41,11 +41,11 @@ export class LevelingRepository {
 
   async leaderboard(guildId: string, limit = 10): Promise<Array<XpProfile & { rank: number }>> {
     const result = await this.db.query<Record<string, unknown>>(
-      `SELECT *, ROW_NUMBER() OVER (ORDER BY xp DESC, user_id) AS rank
-         FROM xp_profiles WHERE guild_id = $1 ORDER BY xp DESC, user_id LIMIT $2`,
+      `SELECT * FROM xp_profiles WHERE guild_id = $1 ORDER BY xp DESC, user_id LIMIT $2`,
       [guildId, limit],
     );
-    return result.rows.map((row) => ({ ...mapProfile(row), rank: Number(row.rank) }));
+    // Total ordering means the row position is the rank, same as ROW_NUMBER().
+    return result.rows.map((row, index) => ({ ...mapProfile(row), rank: index + 1 }));
   }
 
   async rankOf(guildId: string, userId: string): Promise<number | null> {
@@ -87,7 +87,7 @@ export class LevelingRepository {
 
       const updated = await tx.query<Record<string, unknown>>(
         `UPDATE xp_profiles
-            SET xp = xp + $3,
+            SET xp = xp + $3::bigint,
                 messages = messages + 1,
                 last_xp_at = now(),
                 updated_at = now()
@@ -114,7 +114,7 @@ export class LevelingRepository {
       let finalProfile = after;
       if (newLevel !== after.level) {
         const leveled = await tx.query<Record<string, unknown>>(
-          'UPDATE xp_profiles SET level = $3, updated_at = now() WHERE guild_id = $1 AND user_id = $2 RETURNING *',
+          'UPDATE xp_profiles SET level = $3::int, updated_at = now() WHERE guild_id = $1 AND user_id = $2 RETURNING *',
           [params.guildId, params.userId, newLevel],
         );
         finalProfile = mapProfile(leveled.rows[0]!);
@@ -147,7 +147,7 @@ export class LevelingRepository {
     const safe = Math.max(0, Math.floor(xp));
     const result = await this.db.query<Record<string, unknown>>(
       `INSERT INTO xp_profiles (guild_id, user_id, xp, level)
-       VALUES ($1, $2, $3, $4)
+       VALUES ($1, $2, $3::bigint, $4::int)
        ON CONFLICT (guild_id, user_id)
        DO UPDATE SET xp = EXCLUDED.xp, level = EXCLUDED.level, updated_at = now()
        RETURNING *`,

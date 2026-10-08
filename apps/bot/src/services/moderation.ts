@@ -41,14 +41,12 @@ export class ModerationService {
   ) {}
 
   private hierarchyCheck(params: ActionParams): string | null {
-    const actorIsOwner = params.guild.ownerId === params.target.id;
     const botMember = params.guild.members.me;
     const botHighest = botMember?.roles.highest.position ?? 0;
     const actorHighest =
       params.actor instanceof GuildMember ? params.actor.roles.highest.position : Number.MAX_SAFE_INTEGER;
 
     const allowed = canModerateTarget({
-      actorIsOwner,
       targetIsGuildOwner: params.guild.ownerId === params.target.id,
       actorHighestRolePosition: actorHighest,
       targetHighestRolePosition: params.target.roles.highest.position,

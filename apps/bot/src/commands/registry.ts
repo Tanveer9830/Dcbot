@@ -5,7 +5,7 @@ import {
   OwnerOnlyError,
   PERMISSION_BIT,
   ValidationError,
-  hasAll,
+  isGuildStaff,
   missingPermissions,
   type PermissionBit,
 } from '@dcbot/shared';
@@ -154,10 +154,15 @@ export class CommandRegistry {
     }
 
     if (command.staffOnly) {
-      const allowed =
-        hasAll(params.memberPermissions, [PERMISSION_BIT.MANAGE_GUILD]) ||
-        hasAll(params.memberPermissions, [PERMISSION_BIT.BAN_MEMBERS]) ||
-        params.staffRoleIds.some((role) => params.memberRoleIds.includes(role));
+      // Same rule everywhere else in the codebase (see isGuildStaff): server
+      // administrators, configured staff roles, or explicitly trusted users.
+      const allowed = isGuildStaff({
+        permissions: params.memberPermissions,
+        roleIds: params.memberRoleIds,
+        staffRoleIds: params.staffRoleIds,
+        trustedUserIds: params.trustedUserIds,
+        userId: params.userId,
+      });
       if (!allowed) {
         return new AuthorizationError('This command is restricted to server staff.');
       }

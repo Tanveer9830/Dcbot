@@ -386,6 +386,39 @@ export class SecurityRepository {
       createdAt: new Date(String(row.created_at)),
     }));
   }
+
+  /**
+   * Retention sweep for the security tables. Replaces the SQL-side prune
+   * function so the behaviour is testable and observable from TypeScript.
+   */
+  async pruneOldRows(retentionDays = 90): Promise<{
+    securityEvents: number;
+    noTagViolations: number;
+    noPinEvents: number;
+  }> {
+    return prune(this.db);
+
+    async function prune(client: Queryable) {
+      const cutoff = `now() - ($1 || ' days')::interval`;
+      const events = await client.query(
+        `DELETE FROM security_events WHERE created_at < ${cutoff}`,
+        [String(retentionDays)],
+      );
+      const noTag = await client.query(
+        `DELETE FROM no_tag_violations WHERE created_at < ${cutoff}`,
+        [String(retentionDays)],
+      );
+      const noPin = await client.query(
+        `DELETE FROM no_pin_events WHERE created_at < ${cutoff}`,
+        [String(retentionDays)],
+      );
+      return {
+        securityEvents: events.rowCount ?? 0,
+        noTagViolations: noTag.rowCount ?? 0,
+        noPinEvents: noPin.rowCount ?? 0,
+      };
+    }
+  }
 }
 
 function mapSettings(row: Record<string, unknown>): SecuritySettings {

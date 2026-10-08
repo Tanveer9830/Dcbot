@@ -399,7 +399,7 @@ const cases = defineCommand({
       const caseNumber = ctx.interaction.options.getInteger('case', true);
       const ok = await repos.moderation.revokeCase(ctx.guild.id, caseNumber);
       await ctx.reply({
-        embeds: [ok ? successEmbed(`Case #${caseNumber} marked revoked.`) : errorEmbed('No such case.')],
+        embeds: [ok ? successEmbed(`Case #${caseNumber} marked revoked.`) : errorEmbed('No such case, or it is already revoked.')],
       });
       return;
     }

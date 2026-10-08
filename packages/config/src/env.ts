@@ -164,15 +164,13 @@ export function loadEnv(options: LoadEnvOptions = {}): Env {
 
 /** Non-throwing variant used by health endpoints and tests. */
 export function inspectEnv(source: NodeJS.ProcessEnv = process.env): LoadEnvResult {
-  try {
+  {
     const env = loadEnv({ source, require: ['bot', 'dashboard', 'database'], throwOnError: false });
     return {
       env,
       missing: collectMissing(env, ['bot', 'dashboard', 'database']),
       warnings: collectWarnings(env),
     };
-  } catch (error) {
-    throw error;
   }
 }
 

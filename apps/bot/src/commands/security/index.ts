@@ -55,7 +55,6 @@ const security = defineCommand({
   staffOnly: true,
   userPermissions: [PERMISSION_BIT.MANAGE_GUILD],
   async execute(ctx) {
-    const service = requireService(ctx.context.services.security, 'security');
     const repos = ctx.context.repos;
     if (!repos) throw new ValidationError('The database is not configured.');
     const sub = ctx.interaction.options.getSubcommand();
@@ -286,7 +285,7 @@ const automod = defineCommand({
     if (sub === 'rule') {
       const rule = ctx.interaction.options.getString('rule', true) as keyof typeof config;
       const enabled = ctx.interaction.options.getBoolean('enabled', true);
-      const updated = await service.update(ctx.guild.id, { [rule]: enabled } as never);
+      await service.update(ctx.guild.id, { [rule]: enabled } as never);
       await ctx.reply({ embeds: [successEmbed(`${String(rule)} is now ${enabled ? 'on' : 'off'}.`)] });
       return;
     }

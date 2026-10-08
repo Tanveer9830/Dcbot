@@ -127,7 +127,7 @@ export class CommunityRepository {
 
   async vote(guildId: string, messageId: string, delta: 1 | -1, positive: boolean): Promise<void> {
     await this.db.query(
-      `UPDATE suggestions SET ${positive ? 'upvotes' : 'downvotes'} = GREATEST(0, ${positive ? 'upvotes' : 'downvotes'} + $3)
+      `UPDATE suggestions SET ${positive ? 'upvotes' : 'downvotes'} = GREATEST(0, ${positive ? 'upvotes' : 'downvotes'} + $3::int)
         WHERE guild_id = $1 AND message_id = $2`,
       [guildId, messageId, delta],
     );

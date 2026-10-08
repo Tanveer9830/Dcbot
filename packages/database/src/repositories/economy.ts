@@ -42,7 +42,7 @@ export class EconomyRepository {
   async ensureAccount(guildId: string, userId: string): Promise<EconomyAccount> {
     const result = await this.db.query<Record<string, unknown>>(
       `INSERT INTO economy_accounts (guild_id, user_id, wallet)
-       VALUES ($1, $2, $3)
+       VALUES ($1, $2, $3::bigint)
        ON CONFLICT (guild_id, user_id) DO UPDATE SET user_id = EXCLUDED.user_id
        RETURNING *`,
       [guildId, userId, this.startingBalance],
@@ -60,12 +60,13 @@ export class EconomyRepository {
 
   async leaderboard(guildId: string, limit = 10): Promise<Array<EconomyAccount & { rank: number }>> {
     const result = await this.db.query<Record<string, unknown>>(
-      `SELECT *, ROW_NUMBER() OVER (ORDER BY (wallet + bank) DESC, user_id) AS rank
-         FROM economy_accounts WHERE guild_id = $1
+      `SELECT * FROM economy_accounts WHERE guild_id = $1
         ORDER BY (wallet + bank) DESC, user_id LIMIT $2`,
       [guildId, limit],
     );
-    return result.rows.map((row) => ({ ...mapAccount(row), rank: Number(row.rank) }));
+    // The ordering is total, so the row position is the rank: identical to
+    // ROW_NUMBER() over the same ordering, without depending on window functions.
+    return result.rows.map((row, index) => ({ ...mapAccount(row), rank: index + 1 }));
   }
 
   /**
@@ -89,8 +90,8 @@ export class EconomyRepository {
 
       const updated = await tx.query<Record<string, unknown>>(
         `UPDATE economy_accounts
-            SET wallet = wallet + $3,
-                total_earned = total_earned + $3,
+            SET wallet = wallet + $3::bigint,
+                total_earned = total_earned + $3::bigint,
                 ${column} = now(),
                 updated_at = now()
           WHERE guild_id = $1 AND user_id = $2
@@ -192,8 +193,8 @@ export class EconomyRepository {
 
       const debited = await tx.query<Record<string, unknown>>(
         `UPDATE economy_accounts
-            SET wallet = wallet - $3, total_spent = total_spent + $3, updated_at = now()
-          WHERE guild_id = $1 AND user_id = $2 AND wallet >= $3
+            SET wallet = wallet - $3::bigint, total_spent = total_spent + $3::bigint, updated_at = now()
+          WHERE guild_id = $1 AND user_id = $2 AND wallet >= $3::bigint
           RETURNING *`,
         [guildId, fromUserId, amount],
       );
@@ -202,7 +203,7 @@ export class EconomyRepository {
 
       const credited = await tx.query<Record<string, unknown>>(
         `UPDATE economy_accounts
-            SET wallet = wallet + $3, total_earned = total_earned + $3, updated_at = now()
+            SET wallet = wallet + $3::bigint, total_earned = total_earned + $3::bigint, updated_at = now()
           WHERE guild_id = $1 AND user_id = $2
           RETURNING *`,
         [guildId, toUserId, amount],
@@ -245,8 +246,8 @@ export class EconomyRepository {
       await ensure(tx, guildId, userId, this.startingBalance);
       const result = await tx.query<Record<string, unknown>>(
         `UPDATE economy_accounts
-            SET wallet = wallet - $3, bank = bank + $3, updated_at = now()
-          WHERE guild_id = $1 AND user_id = $2 AND wallet >= $3
+            SET wallet = wallet - $3::bigint, bank = bank + $3::bigint, updated_at = now()
+          WHERE guild_id = $1 AND user_id = $2 AND wallet >= $3::bigint
           RETURNING *`,
         [guildId, userId, amount],
       );
@@ -263,8 +264,8 @@ export class EconomyRepository {
       await ensure(tx, guildId, userId, this.startingBalance);
       const result = await tx.query<Record<string, unknown>>(
         `UPDATE economy_accounts
-            SET bank = bank - $3, wallet = wallet + $3, updated_at = now()
-          WHERE guild_id = $1 AND user_id = $2 AND bank >= $3
+            SET bank = bank - $3::bigint, wallet = wallet + $3::bigint, updated_at = now()
+          WHERE guild_id = $1 AND user_id = $2 AND bank >= $3::bigint
           RETURNING *`,
         [guildId, userId, amount],
       );
@@ -291,11 +292,11 @@ export class EconomyRepository {
       await ensure(tx, params.guildId, params.userId, this.startingBalance);
       const result = await tx.query<Record<string, unknown>>(
         `UPDATE economy_accounts
-            SET ${column} = ${column} + $3,
-                total_earned = total_earned + GREATEST($3, 0),
-                total_spent = total_spent + GREATEST(-$3, 0),
+            SET ${column} = ${column} + $3::bigint,
+                total_earned = total_earned + GREATEST($3::bigint, 0),
+                total_spent = total_spent + GREATEST(-$3::bigint, 0),
                 updated_at = now()
-          WHERE guild_id = $1 AND user_id = $2 AND ${column} + $3 >= 0
+          WHERE guild_id = $1 AND user_id = $2 AND ${column} + $3::bigint >= 0
           RETURNING *`,
         [params.guildId, params.userId, params.delta],
       );
@@ -328,7 +329,7 @@ export class EconomyRepository {
 async function ensure(tx: Queryable, guildId: string, userId: string, startingBalance: number): Promise<void> {
   await tx.query(
     `INSERT INTO economy_accounts (guild_id, user_id, wallet)
-     VALUES ($1, $2, $3) ON CONFLICT (guild_id, user_id) DO NOTHING`,
+     VALUES ($1, $2, $3::bigint) ON CONFLICT (guild_id, user_id) DO NOTHING`,
     [guildId, userId, startingBalance],
   );
 }

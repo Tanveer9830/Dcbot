@@ -181,7 +181,7 @@ async function main(): Promise<void> {
 
   // --- events -----------------------------------------------------------------
   registerEvents(client, context);
-  registerInteractionHandler(client, context, cooldowns);
+  registerInteractionHandler(client, context);
   registerGuildEvents(client, context);
 
   let jobs: JobHandle | null = null;

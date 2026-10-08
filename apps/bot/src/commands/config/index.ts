@@ -1,5 +1,5 @@
 import { ChannelType, SlashCommandBuilder, type TextChannel } from 'discord.js';
-import { defineCommand, requireService, successEmbed, errorEmbed, ValidationError } from '../helpers.js';
+import { defineCommand, requireService, successEmbed, ValidationError } from '../helpers.js';
 import { PERMISSION_BIT } from '@dcbot/shared';
 
 const config = defineCommand({

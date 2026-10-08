@@ -3,7 +3,8 @@
 -- and scheduled tasks. Snowflakes are stored as TEXT: they are identifiers,
 -- never used for arithmetic, and TEXT avoids bigint precision surprises in JS.
 
-CREATE EXTENSION IF NOT EXISTS pgcrypto;
+-- No extensions are required: identifiers are application-generated snowflakes
+-- and no cryptographic functions are used inside SQL.
 
 CREATE TABLE IF NOT EXISTS guilds (
     guild_id    TEXT PRIMARY KEY,

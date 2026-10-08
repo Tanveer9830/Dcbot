@@ -24,55 +24,32 @@ SELECT
     g.name,
     g.member_count,
     g.bot_joined_at,
-    (SELECT COUNT(*) FROM moderation_cases mc WHERE mc.guild_id = g.guild_id) AS moderation_cases,
-    (SELECT COUNT(*) FROM warnings w WHERE w.guild_id = g.guild_id) AS warnings,
-    (SELECT COUNT(*) FROM security_events se WHERE se.guild_id = g.guild_id) AS security_events,
-    (SELECT COUNT(*) FROM tickets t WHERE t.guild_id = g.guild_id AND t.status <> 'closed') AS open_tickets,
-    (SELECT COUNT(*) FROM giveaways gv WHERE gv.guild_id = g.guild_id AND gv.ended = FALSE) AS active_giveaways,
-    (SELECT COUNT(*) FROM custom_commands cc WHERE cc.guild_id = g.guild_id AND cc.enabled = TRUE) AS guild_commands,
-    (SELECT COUNT(*) FROM xp_profiles x WHERE x.guild_id = g.guild_id) AS ranked_members
-FROM guilds g;
-
--- Retention helper: called by the scheduled cleanup job.
-CREATE OR REPLACE FUNCTION prune_old_rows(retention_days INTEGER DEFAULT 90)
-RETURNS TABLE (security_events_deleted BIGINT, audit_logs_deleted BIGINT,
-               no_tag_violations_deleted BIGINT, no_pin_events_deleted BIGINT) AS $$
-DECLARE
-    cutoff TIMESTAMPTZ := now() - (retention_days || ' days')::INTERVAL;
-    se_count BIGINT; al_count BIGINT; nt_count BIGINT; np_count BIGINT;
-BEGIN
-    DELETE FROM security_events WHERE created_at < cutoff;
-    GET DIAGNOSTICS se_count = ROW_COUNT;
-
-    DELETE FROM audit_logs WHERE created_at < cutoff;
-    GET DIAGNOSTICS al_count = ROW_COUNT;
-
-    DELETE FROM no_tag_violations WHERE created_at < cutoff;
-    GET DIAGNOSTICS nt_count = ROW_COUNT;
-
-    DELETE FROM no_pin_events WHERE created_at < cutoff;
-    GET DIAGNOSTICS np_count = ROW_COUNT;
-
-    security_events_deleted := se_count;
-    audit_logs_deleted := al_count;
-    no_tag_violations_deleted := nt_count;
-    no_pin_events_deleted := np_count;
-    RETURN NEXT;
-END;
-$$ LANGUAGE plpgsql;
-
-CREATE OR REPLACE FUNCTION touch_updated_at() RETURNS trigger AS $$
-BEGIN
-    NEW.updated_at = now();
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-
-CREATE OR REPLACE FUNCTION next_case_number(p_guild_id TEXT) RETURNS INTEGER AS $$
-DECLARE next_value INTEGER;
-BEGIN
-    SELECT COALESCE(MAX(case_number), 0) + 1 INTO next_value
-    FROM moderation_cases WHERE guild_id = p_guild_id;
-    RETURN next_value;
-END;
-$$ LANGUAGE plpgsql;
+    COALESCE(mc.cases, 0)::BIGINT AS moderation_cases,
+    COALESCE(w.total, 0)::BIGINT AS warnings,
+    COALESCE(se.events, 0)::BIGINT AS security_events,
+    COALESCE(t.open_tickets, 0)::BIGINT AS open_tickets,
+    COALESCE(gv.active_giveaways, 0)::BIGINT AS active_giveaways,
+    COALESCE(cc.guild_commands, 0)::BIGINT AS guild_commands,
+    COALESCE(x.ranked_members, 0)::BIGINT AS ranked_members
+FROM guilds g
+LEFT JOIN (
+    SELECT guild_id, COUNT(*) AS cases FROM moderation_cases GROUP BY guild_id
+) mc ON mc.guild_id = g.guild_id
+LEFT JOIN (
+    SELECT guild_id, COUNT(*) AS total FROM warnings GROUP BY guild_id
+) w ON w.guild_id = g.guild_id
+LEFT JOIN (
+    SELECT guild_id, COUNT(*) AS events FROM security_events GROUP BY guild_id
+) se ON se.guild_id = g.guild_id
+LEFT JOIN (
+    SELECT guild_id, COUNT(*) AS open_tickets FROM tickets WHERE status <> 'closed' GROUP BY guild_id
+) t ON t.guild_id = g.guild_id
+LEFT JOIN (
+    SELECT guild_id, COUNT(*) AS active_giveaways FROM giveaways WHERE ended = FALSE GROUP BY guild_id
+) gv ON gv.guild_id = g.guild_id
+LEFT JOIN (
+    SELECT guild_id, COUNT(*) AS guild_commands FROM custom_commands WHERE enabled = TRUE GROUP BY guild_id
+) cc ON cc.guild_id = g.guild_id
+LEFT JOIN (
+    SELECT guild_id, COUNT(*) AS ranked_members FROM xp_profiles GROUP BY guild_id
+) x ON x.guild_id = g.guild_id;

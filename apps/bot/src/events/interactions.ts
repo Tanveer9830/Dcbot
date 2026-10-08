@@ -9,7 +9,6 @@ import {
 import { DcbotError, ValidationError, maskId } from '@dcbot/shared';
 import type { BotContext, CommandExecutionContext } from '../types.js';
 import { errorEmbed } from './index.js';
-import { CooldownManager } from '../utils/cooldown.js';
 
 const REPLY_TIMEOUT_MS = 2_500;
 
@@ -23,13 +22,13 @@ const REPLY_TIMEOUT_MS = 2_500;
  *  4. database requirement
  *  5. execute, with a single place that converts errors into user messages
  */
-export function registerInteractionHandler(client: Client, ctx: BotContext, cooldowns: CooldownManager): void {
+export function registerInteractionHandler(client: Client, ctx: BotContext): void {
   const logger = ctx.logger.child({ scope: 'interaction' });
 
   client.on(Events.InteractionCreate, async (interaction: Interaction) => {
     try {
       if (interaction.isChatInputCommand()) {
-        await handleCommand(interaction, ctx, cooldowns);
+        await handleCommand(interaction, ctx);
         return;
       }
       if (interaction.isButton()) {
@@ -52,7 +51,6 @@ export function registerInteractionHandler(client: Client, ctx: BotContext, cool
 async function handleCommand(
   interaction: ChatInputCommandInteraction,
   ctx: BotContext,
-  cooldowns: CooldownManager,
 ): Promise<void> {
   const registry = ctx.registry;
   if (!registry) {

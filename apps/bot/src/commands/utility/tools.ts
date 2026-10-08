@@ -65,6 +65,12 @@ export default [timestamp, calculator];
  * Deliberately NOT eval/Function: user input never becomes code. Supports
  * + - * / % and parentheses with correct precedence, unary minus, and decimals.
  */
+/**
+ * Thrown for the one arithmetic problem worth naming: the expression parsed
+ * correctly, so "only digits and operators are allowed" would be a lie.
+ */
+class DivisionByZeroError extends ValidationError {}
+
 export function safeEvaluate(input: string): number | null {
   const cleaned = input.replace(/\s+/g, '');
   if (!cleaned || cleaned.length > 200) return null;
@@ -99,12 +105,12 @@ export function safeEvaluate(input: string): number | null {
       } else if (operator === '/') {
         position += 1;
         const divisor = parseFactor();
-        if (divisor === 0) throw new ValidationError('Division by zero.');
+        if (divisor === 0) throw new DivisionByZeroError('Division by zero.');
         value /= divisor;
       } else if (operator === '%') {
         position += 1;
         const divisor = parseFactor();
-        if (divisor === 0) throw new ValidationError('Division by zero.');
+        if (divisor === 0) throw new DivisionByZeroError('Division by zero.');
         value %= divisor;
       } else {
         break;
@@ -143,7 +149,10 @@ export function safeEvaluate(input: string): number | null {
     if (position !== cleaned.length) return null;
     if (!Number.isFinite(value)) return null;
     return Math.round(value * 1e6) / 1e6;
-  } catch {
+  } catch (error) {
+    // Unparseable input returns null so the command can give its generic "only
+    // digits and operators" hint. A diagnosed arithmetic error keeps its message.
+    if (error instanceof DivisionByZeroError) throw error;
     return null;
   }
 }

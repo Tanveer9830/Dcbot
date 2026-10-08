@@ -74,7 +74,8 @@ export function startBackgroundJobs(ctx: BotContext): JobHandle {
     const sessions = await repos.sessions.purgeExpired();
     const tasks = await repos.scheduler.pruneCompleted(7);
     const logs = await repos.audit.prune(90);
-    logger.info('housekeeping complete', { sessions, tasks, logs });
+    const security = await repos.security.pruneOldRows(90);
+    logger.info('housekeeping complete', { sessions, tasks, logs, ...security });
   });
 
   return {

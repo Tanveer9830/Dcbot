@@ -18,7 +18,8 @@ export interface SpotifyLink {
   kind: SpotifyKind;
   id: string;
   url: string;
-  market?: string;
+  /** The `si` share parameter, when the link was copied from the app. */
+  shareId?: string;
 }
 
 export interface ResolvedSpotify {
@@ -32,14 +33,15 @@ const SPOTIFY_URL = /^https?:\/\/open\.spotify\.com\/(?:intl-[a-z-]+\/)?(track|a
 
 /** Parses an open.spotify.com URL. Returns null when it is not a Spotify link. */
 export function parseSpotifyUrl(url: string): SpotifyLink | null {
-  const match = url.trim().match(SPOTIFY_URL);
+  const trimmed = url.trim();
+  const match = trimmed.match(SPOTIFY_URL);
   if (!match) return null;
-  const marketMatch = url.match(/[?&]si=/i);
+  const shareId = trimmed.match(/[?&]si=([^&#]+)/i)?.[1];
   return {
     kind: match[1]!.toLowerCase() as SpotifyKind,
     id: match[2]!,
     url: match[0],
-    ...(marketMatch ? {} : {}),
+    ...(shareId ? { shareId } : {}),
   };
 }
 

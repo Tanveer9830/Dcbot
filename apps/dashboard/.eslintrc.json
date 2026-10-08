@@ -1,4 +1,14 @@
 {
-  "extends": ["next/core-web-vitals"],
-  "ignorePatterns": [".next", "node_modules"]
+  "extends": [
+    "next/core-web-vitals"
+  ],
+  "ignorePatterns": [
+    ".next",
+    "node_modules"
+  ],
+  "settings": {
+    "next": {
+      "rootDir": "apps/dashboard"
+    }
+  }
 }

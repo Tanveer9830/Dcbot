@@ -36,15 +36,13 @@ export function missingPermissions(
  * returns a 50013.
  */
 export function canModerateTarget(params: {
-  actorIsOwner: boolean;
   targetIsGuildOwner: boolean;
   actorHighestRolePosition: number;
   targetHighestRolePosition: number;
   botHighestRolePosition: number;
   targetHighestRolePositionForBot?: number;
 }): boolean {
-  if (params.actorIsOwner) return false; // The guild owner cannot be moderated.
-  if (params.targetIsGuildOwner) return false;
+  if (params.targetIsGuildOwner) return false; // The guild owner cannot be moderated.
   if (params.targetHighestRolePosition >= params.actorHighestRolePosition) return false;
   const botHighest = params.botHighestRolePosition;
   const targetForBot = params.targetHighestRolePositionForBot ?? params.targetHighestRolePosition;
